@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PeopleOps: HR Decision Simulator</title>
+<style>
+:root{--bg:#f3f5f8;--panel:#fff;--ink:#18212f;--muted:#687386;--line:#e4e8ef;--blue:#1f5eff;--nav:#101726;--good:#087f5b;--bad:#c92a2a;--amber:#b36b00;--shadow:0 14px 36px rgba(19,31,55,.08)}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)} button,input{font:inherit}
+.app{display:grid;grid-template-columns:245px 1fr;min-height:100vh} .side{background:var(--nav);color:#fff;padding:22px 17px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh}
+.brand{font-size:18px;font-weight:800;display:flex;gap:10px;align-items:center} .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#62a0ff,#52d6a6);display:grid;place-items:center;color:#0e1726;font-weight:900}
+.navbtn{width:100%;border:0;background:transparent;color:#b7c0ce;text-align:left;padding:11px 12px;border-radius:9px;cursor:pointer;margin:2px 0} .navbtn.active,.navbtn:hover{background:#202a3c;color:#fff}
+.sideinfo{margin-top:auto;border-top:1px solid #344054;padding-top:15px;color:#9ba7b7;font-size:12px;line-height:1.5}
+.main{padding:24px;min-width:0} .top{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:17px} h1{font-size:25px;margin:0} .sub{margin-top:5px;color:var(--muted);font-size:13px}
+.profile{display:flex;gap:10px;align-items:center} .avatar{width:38px;height:38px;border-radius:50%;background:#dfe9ff;color:#1747b8;display:grid;place-items:center;font-weight:800}
+.metrics{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:10px;margin-bottom:16px} .metric{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px 13px;box-shadow:var(--shadow)} .metric small{color:var(--muted)} .metric b{display:block;font-size:20px;margin-top:5px}
+.progressbar{height:6px;background:#edf0f4;border-radius:99px;overflow:hidden;margin-top:8px} .progressbar i{display:block;height:100%;background:var(--blue)}
+.workspace{display:grid;grid-template-columns:345px minmax(0,1fr);gap:16px} .card{background:var(--panel);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow);overflow:hidden}
+.head{padding:16px 17px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px;align-items:center} .head h3{margin:0;font-size:16px} .head small{color:var(--muted)}
+.list{max-height:695px;overflow:auto} .email{padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer;position:relative} .email:hover,.email.active{background:#f7f9fc} .email.active{box-shadow:inset 3px 0 var(--blue)} .email.done:after{content:"✓";position:absolute;right:12px;bottom:10px;color:var(--good);font-weight:800}
+.etop{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;gap:8px} .email h4{font-size:13px;margin:6px 0 5px;padding-right:20px} .email p{font-size:12px;color:var(--muted);margin:0;line-height:1.4} .pill{display:inline-block;margin-top:8px;padding:3px 6px;border-radius:99px;background:#eef3ff;color:#244fbf;font-size:10px}
+.detailbody{padding:20px;max-height:635px;overflow:auto} .mailcopy{line-height:1.6;font-size:14px} .eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;margin:22px 0 9px}
+.people{display:grid;grid-template-columns:repeat(3,1fr);gap:9px} .person{border:1px solid var(--line);border-radius:11px;padding:11px;cursor:pointer} .person:hover{background:#f8faff;border-color:#9dbaff} .person b{display:block;font-size:13px} .person span{font-size:11px;color:var(--muted)}
+.chat{border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-top:12px} .chatlog{background:#f7f9fc;padding:12px;min-height:155px;max-height:245px;overflow:auto} .msg{max-width:82%;font-size:12.5px;line-height:1.45;padding:9px 10px;border-radius:11px;margin:6px 0} .them{background:#fff;border:1px solid var(--line)} .me{margin-left:auto;background:#dfe9ff} .chatqs{padding:10px;display:flex;gap:7px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:#fff;padding:9px 11px;border-radius:9px;cursor:pointer;font-size:12px} .btn:hover{background:#f7f9fc} .btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)} .btn.dark{background:#101726;color:#fff;border-color:#101726}
+.freeask{display:flex;gap:7px;padding:0 10px 10px} .freeask input{flex:1;border:1px solid var(--line);border-radius:8px;padding:9px;font-size:12px}
+.choice{border:1px solid var(--line);border-radius:11px;padding:12px;margin:8px 0;cursor:pointer} .choice:hover{border-color:#7ba1ff;background:#f8faff} .choice b{font-size:13px;display:block;margin-bottom:4px} .choice span{font-size:12px;color:var(--muted)}
+.banner{padding:12px 14px;border-radius:10px;background:#fff5e8;border:1px solid #ffd7a8;color:#7a4b00;font-size:12px;line-height:1.5;margin-bottom:14px} .locked{opacity:.5;pointer-events:none}
+.modal{position:fixed;inset:0;background:rgba(7,14,28,.58);display:none;place-items:center;padding:20px;z-index:20} .modal.show{display:grid} .modalbox{background:#fff;border-radius:17px;width:min(720px,96vw);padding:22px;box-shadow:0 30px 90px rgba(0,0,0,.3)} .modalbox h2{margin-top:0}
+.impacts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:15px 0} .impact{padding:11px;border:1px solid var(--line);border-radius:10px;background:#f8fafc} .impact b{display:block;font-size:18px}
+.dashboard{display:none} .dashboard.active{display:block} .workspace.hide{display:none} .dashgrid{display:grid;grid-template-columns:1.2fr .8fr;gap:16px} .dashcard{background:#fff;border:1px solid var(--line);border-radius:15px;padding:17px;box-shadow:var(--shadow)} .dashcard h3{margin-top:0}
+.logitem{padding:10px 0;border-bottom:1px solid var(--line);font-size:12px;line-height:1.45} .score{font-size:48px;font-weight:900} .grade{font-size:18px;font-weight:800;margin-top:5px}
+.toast{position:fixed;right:22px;bottom:22px;background:#101726;color:#fff;padding:11px 14px;border-radius:9px;display:none;z-index:30;font-size:12px} .toast.show{display:block}
+@media(max-width:1050px){.metrics{grid-template-columns:repeat(3,1fr)}.workspace{grid-template-columns:1fr}.people{grid-template-columns:1fr}.app{grid-template-columns:1fr}.side{display:none}.dashgrid{grid-template-columns:1fr}}
+</style>
+<style>
+.lawbox{margin:16px 0;padding:14px 16px;border:1px solid #d7dee8;border-radius:12px;background:#f8fafc}
+.lawbox summary{cursor:pointer;font-weight:800;color:#17324d}.lawitem{padding:10px 0;border-top:1px solid #e5e7eb}.lawitem:first-of-type{border-top:0}
+.lawtag{display:inline-block;font-size:10px;font-weight:800;padding:3px 7px;border-radius:999px;background:#e8eef7;margin-bottom:5px}
+.lawitem b{display:block}.lawitem p{margin:5px 0;font-size:12px;line-height:1.45;color:#475569}.lawsource{font-size:11px;color:#64748b}
+</style><style>
+.scorewhy{margin-top:14px;border-top:1px solid #e5e7eb;padding-top:10px}
+.scorewhy h4{margin:0 0 8px}.whyrow{padding:8px 10px;margin:6px 0;background:#f8fafc;border-radius:9px;font-size:12px;line-height:1.45}
+.whyrow b{display:inline-block;min-width:135px}.whyrow .delta{font-weight:800;margin-left:5px}
+</style><style>
+.lockedcase{filter:grayscale(.25)}
+</style>
+<style>
+#coverScreen{position:fixed;inset:0;z-index:5000;background:#f4f7fb;display:flex;align-items:center;justify-content:center;padding:28px}
+.cover-card{width:min(980px,94vw);background:#fff;border-radius:22px;box-shadow:0 24px 70px rgba(20,40,70,.16);overflow:hidden;border:1px solid #dfe6ee}
+.cover-hero{padding:38px 42px 30px;background:linear-gradient(135deg,#12263f,#1d4f73);color:white}
+.cover-hero h1{margin:8px 0 10px;font-size:36px}.cover-hero p{margin:0;max-width:760px;line-height:1.6}
+.cover-body{padding:30px 42px 36px}.cover-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.cover-panel{border:1px solid #e2e8f0;border-radius:14px;padding:18px;background:#fbfcfe}
+.cover-panel h3{margin:0 0 8px}.cover-panel p,.cover-panel li{font-size:13px;line-height:1.55;color:#475569}
+.objective-box{border:2px solid #173f62;border-radius:14px;padding:18px 20px;background:#eef5fb;margin-top:18px}
+.cover-start{border:0;border-radius:10px;padding:13px 22px;font-weight:800;cursor:pointer;background:#173f62;color:white}
+.cover-actions{display:flex;justify-content:flex-end;margin-top:24px}
+.interject{margin:14px 0;padding:14px 16px;border-radius:12px;background:#fff7e6;border:1px solid #f0d499;color:#5d4513}
+.interject .itop{font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px}
+.interject b{display:block;margin-bottom:4px}
+@media(max-width:760px){.cover-grid{grid-template-columns:1fr}.cover-hero,.cover-body{padding-left:24px;padding-right:24px}}
+</style>
+
+<style>
+.info-stage{margin-top:14px;padding:14px;border:1px solid #e2e8f0;border-radius:12px;background:#fbfcfe}
+.info-stage-title{font-size:12px;font-weight:900;letter-spacing:.07em;text-transform:uppercase;color:#475569;margin-bottom:8px}
+.info-stage.newset{background:#f6f9fc;border-color:#cbd8e6}
+.stage-note{font-size:12px;color:#64748b;margin-bottom:10px}
+</style>
+<style>
+#interjectionModal{
+  position:fixed; inset:0; z-index:6500; display:none;
+  align-items:center; justify-content:center; padding:24px;
+  background:rgba(15,23,42,.48); backdrop-filter:blur(3px);
+}
+#interjectionModal.show{display:flex}
+.interjection-card{
+  width:min(560px,92vw); background:#fff; border-radius:18px;
+  box-shadow:0 28px 80px rgba(15,23,42,.28); overflow:hidden;
+  border:1px solid #dbe3ec;
+}
+.interjection-head{
+  padding:18px 22px; background:linear-gradient(135deg,#fff5dc,#ffe7a9);
+  border-bottom:1px solid #efd79c;
+}
+.interjection-head .tag{
+  font-size:11px; font-weight:900; letter-spacing:.09em; text-transform:uppercase;
+  color:#7c5b13; margin-bottom:5px;
+}
+.interjection-head h3{margin:0;color:#4f3a0c;font-size:19px}
+.interjection-body{padding:22px;color:#334155;line-height:1.6}
+.interjection-body p{margin:0}
+.interjection-actions{padding:0 22px 22px;display:flex;justify-content:flex-end}
+.interjection-btn{
+  border:0;border-radius:10px;background:#173f62;color:#fff;
+  font-weight:800;padding:11px 18px;cursor:pointer
+}
+.followup-heading{
+  margin:14px 0 8px;padding-top:12px;border-top:1px solid #e2e8f0;
+  font-size:12px;font-weight:900;letter-spacing:.07em;text-transform:uppercase;color:#475569
+}
+</style>
+
+<style>
+/* Unified information-gathering workspace */
+.gather-panel{
+  margin-top:16px;
+  border:1px solid #d9e2ec;
+  border-radius:16px;
+  background:#fff;
+  overflow:hidden;
+  box-shadow:0 5px 18px rgba(15,23,42,.05);
+}
+.gather-head{
+  padding:16px 18px 12px;
+  background:#f8fafc;
+  border-bottom:1px solid #e5eaf0;
+}
+.gather-head .info-stage-title{margin-bottom:5px}
+.gather-people{padding:14px 18px 4px}
+.gather-workspace{padding:8px 18px 18px}
+.gather-workspace .chat{
+  border:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  padding:0!important;
+  margin:0!important;
+}
+.interview-head{
+  margin:8px 0 10px;
+  padding:10px 12px;
+  border-radius:10px;
+  background:#f3f6f9;
+}
+.interview-head b{display:block;color:#1e293b}
+.interview-head span{font-size:12px;color:#64748b}
+.followup-heading{
+  margin:14px 0 8px;
+  padding-top:12px;
+  border-top:1px solid #e2e8f0;
+  font-size:12px;font-weight:900;letter-spacing:.07em;
+  text-transform:uppercase;color:#475569
+}
+</style>
+
+<style>
+.decision-panel{
+  margin-top:18px;padding:16px;border:1px solid #dfe5ec;border-radius:14px;
+  transition:opacity .2s ease, background .2s ease;
+}
+.decision-panel.locked-decision{
+  background:#f1f3f5;opacity:.58;filter:grayscale(.65);
+}
+.decision-panel.locked-decision .choice{
+  pointer-events:none;cursor:not-allowed!important;
+}
+.decision-lock-note{
+  margin:8px 0 12px;padding:10px 12px;border-radius:9px;
+  background:#e5e7eb;color:#4b5563;font-size:12px;font-weight:700;
+}
+.person.consulted{
+  border-color:#9bc9b5!important;background:#f0faf5!important;
+}
+.person.consulted:after{
+  content:"✓ Consultation Complete";display:block;margin-top:5px;font-size:10px;
+  font-weight:800;color:#267354;
+}
+</style>
+
+<style>
+.inline-new-update{
+  margin:14px 0 12px;
+  padding:13px 15px;
+  border-radius:11px;
+  background:#fff8e7;
+  border:1px solid #efd99e;
+  color:#5f4a16;
+  line-height:1.5;
+}
+.inline-new-update .update-label{
+  display:block;
+  margin-bottom:4px;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#8a6818;
+}
+</style>
+
+<style>
+/* Scrolling fix */
+html, body {
+  height: auto !important;
+  min-height: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+#coverScreen {
+  position: fixed;
+  inset: 0;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  align-items: flex-start !important;
+}
+.cover-card {
+  margin: 28px auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  flex-shrink: 0;
+}
+.app {
+  min-height: 100vh;
+  height: auto !important;
+}
+.main {
+  min-height: 100vh;
+  height: auto !important;
+  overflow-y: visible !important;
+}
+</style>
+
+
+<style>
+.creator-credit{
+  margin-top:18px;padding-top:15px;border-top:1px solid #dfe5ec;
+  text-align:center;font-size:11px;line-height:1.55;color:#64748b;
+}
+.creator-credit strong{color:#334155}
+</style>
+
+<style>
+#finalSummaryScreen{
+  display:none; position:fixed; inset:0; z-index:7000;
+  overflow-y:auto; background:#f4f7fa; padding:30px 20px;
+}
+.final-summary-card{
+  width:min(980px,96vw); margin:0 auto 36px; background:#fff;
+  border-radius:20px; box-shadow:0 22px 65px rgba(15,23,42,.15); overflow:hidden;
+}
+.final-summary-hero{padding:28px 32px;background:#173f62;color:#fff}
+.final-summary-hero h1{margin:5px 0 8px;font-size:30px}
+.final-summary-body{padding:26px 32px}
+.final-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+.final-metric{padding:14px;border:1px solid #dfe6ee;border-radius:12px;background:#f8fafc}
+.final-metric span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;font-weight:800}
+.final-metric b{display:block;font-size:25px;margin-top:4px;color:#173f62}
+.debrief-box{margin-top:20px;padding:18px;border-radius:14px;background:#fff8e7;border:1px solid #ead49a}
+.debrief-box h3{margin:0 0 8px;color:#684f12}
+.final-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+@media(max-width:700px){.final-metrics{grid-template-columns:1fr 1fr}.final-summary-body{padding:20px}}
+</style>
+</head>
+<body>
+
+<div id="finalSummaryScreen">
+  <div class="final-summary-card">
+    <div class="final-summary-hero">
+      <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;opacity:.8">Simulation Complete</div>
+      <h1>Your HR Management Results</h1>
+      <div id="finalSummaryHeadline">Review how your decisions affected people, risk and business outcomes.</div>
+    </div>
+    <div class="final-summary-body">
+      <h2 style="margin-top:0">Final Scorecard</h2>
+      <div class="final-metrics" id="finalSummaryMetrics"></div>
+      <div id="finalSummaryProfile"></div>
+      <h2>Decision Outcomes</h2>
+      <div id="finalSummaryLog"></div>
+      <div class="debrief-box">
+        <h3>Bring your results to the session</h3>
+        <p>Your results are not intended to identify a single “perfect” HR manager. Different choices create different trade-offs across employee trust, business performance, legal/HR risk, manager confidence, culture and cost.</p>
+        <p><strong>Please be prepared to discuss your results during the session.</strong> Compare your final scores and decisions with other participants, explain the reasoning behind your choices, and consider where alternative decisions may have produced different organisational consequences.</p>
+      </div>
+      <div class="final-actions">
+        <button class="btn primary" onclick="showDashboardFromSummary()">View Detailed Dashboard</button>
+        <button class="btn" onclick="resetSimulationFromSummary()">Restart Simulation</button>
+      </div>
+      <div class="creator-credit" style="margin-top:26px">
+        <strong>Created by Dr Tan Kim Lim, James Cook University (Singapore Campus)</strong><br>
+        © 2026 Dr Tan Kim Lim. All rights reserved.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="interjectionModal" role="dialog" aria-modal="true">
+  <div class="interjection-card">
+    <div class="interjection-head">
+      <div class="tag">New Information Received</div>
+      <h3 id="interjectionTitle">Case update</h3>
+    </div>
+    <div class="interjection-body">
+      <p id="interjectionText"></p>
+    </div>
+    <div class="interjection-actions">
+      <button class="interjection-btn" onclick="closeInterjection()">Continue Investigation</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="coverScreen"><div class="cover-card">
+<div class="cover-hero"><div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;opacity:.8">PeopleOps HR Simulation</div>
+<h1>Managing People, Risk and Business Performance</h1>
+<p>You are the HR Manager of Northstar Consumer Group. You will receive a sequence of realistic workplace issues that require you to gather information, exercise HR judgement and make decisions under competing business and people pressures.</p></div>
+<div class="cover-body">
+<div class="cover-panel" style="margin-bottom:18px">
+<h3>About Northstar Consumer Group</h3>
+<p><strong>Northstar Consumer Group</strong> is a fictional, Singapore-headquartered consumer business with approximately <strong>420 employees</strong>. The company operates across sales, operations, finance, marketing, technology and corporate functions, serving customers through a mix of retail, distribution and digital channels.</p>
+<p>Northstar has grown quickly and is now moving from an entrepreneurial way of working toward a more structured and professionally managed organisation. Commercial expectations remain high, while managers are under increasing pressure to deliver results, control costs and retain capable employees.</p>
+<p>For HR, this creates a challenging environment. Policies and management practices are not always applied consistently, managers differ in their people-management capability, and employees increasingly expect fairness, transparency and flexibility. At the same time, senior leaders expect HR to protect the organisation from risk <strong>without becoming an obstacle to business performance</strong>.</p>
+<p><strong>Your position:</strong> You are Northstar's HR Manager, reporting to the CHRO. Your role is not simply to process HR requests. You are expected to investigate situations, challenge assumptions where necessary, advise managers and make decisions that balance people, performance, risk, culture and cost.</p>
+</div>
+<div class="cover-grid">
+<div class="cover-panel"><h3>Purpose of the activity</h3><p>Develop practical HR decision-making by balancing employee experience, organisational performance, legal and HR risk, management expectations, culture and cost.</p></div>
+<div class="cover-panel"><h3>How the simulation works</h3><ul><li>Scenarios unfold one at a time.</li><li>Speak to stakeholders before deciding.</li><li>New information may emerge while you investigate.</li><li>Earlier decisions can create later consequences.</li></ul></div>
+</div>
+<div class="objective-box"><b>Your objective</b><br>Maintain the highest possible score across <strong>all components</strong>. Strong HR judgement means sustaining balanced outcomes rather than maximising one score at the expense of the others.</div>
+<div class="cover-panel" style="margin-top:18px"><h3>Your scorecard</h3><p><strong>Employee Trust · Business Performance · HR / Legal Risk · Manager Confidence · People Culture · Budget Remaining</strong></p><p>All non-budget measures begin at 50. For HR / Legal Risk, lower is better.</p></div>
+<div class="creator-credit">
+<strong>Created by Dr Tan Kim Lim, James Cook University (Singapore Campus)</strong><br>
+© 2026 Dr Tan Kim Lim. All rights reserved. This simulation and its contents are protected by copyright. No part may be reproduced, distributed, modified or used for commercial purposes without prior permission from the copyright holder.<br><br>
+<strong>Disclaimer:</strong> All companies, organisations, characters, scenarios and events depicted in this simulation are fictitious and have been created solely for educational purposes. Any resemblance to actual persons, organisations, companies, events or situations, whether past or present, is purely coincidental.
+</div>
+<div class="cover-actions"><button class="cover-start" onclick="startSimulation()">Begin Simulation</button></div>
+</div></div></div>
+
+<div class="app">
+<aside class="side">
+<div class="brand"><div class="logo">HR</div>PeopleOps Simulator</div>
+<div>
+<button class="navbtn active" id="navInbox" onclick="showInbox()">▣ Inbox & Cases</button>
+<button class="navbtn" id="navDash" onclick="showDashboard()">▥ People Dashboard</button>
+</div>
+<div class="sideinfo"><b>Organisation:</b> Northstar Consumer Group<br>420 employees · Singapore HQ<br><br><b>Your role:</b> HR Manager<br>Reports to: CHRO</div>
+</aside>
+
+<main class="main">
+<div class="top">
+<div><h1>HR Manager Workspace</h1><div class="sub" id="dayLabel">Simulation Day 1 · 09:10 AM</div></div>
+<div style="display:flex;align-items:center;gap:12px"><button class="btn" onclick="resetSimulation()">↻ Reset Simulation</button><div class="profile"><div class="avatar">HR</div><div><b>You</b><div class="sub">HR Manager</div></div></div></div>
+</div>
+
+<section class="metrics">
+<div class="metric"><small>Employee Trust</small><div class="sub">Trust employees have in the company</div><b id="trust">50</b><div class="progressbar"><i id="trustBar"></i></div></div>
+<div class="metric"><small>Business Performance</small><div class="sub">Impact on productivity and business results</div><b id="performance">50</b><div class="progressbar"><i id="performanceBar"></i></div></div>
+<div class="metric"><small>HR / Legal Risk</small><div class="sub">Exposure to HR, compliance and legal problems</div><b id="risk">50</b><div class="progressbar"><i id="riskBar"></i></div></div>
+<div class="metric"><small>Manager Confidence</small><div class="sub">Managers' confidence in HR support and decisions</div><b id="confidence">50</b><div class="progressbar"><i id="confidenceBar"></i></div></div>
+<div class="metric"><small>People Culture</small><div class="sub">Effect on fairness, behaviour and workplace culture</div><b id="culture">50</b><div class="progressbar"><i id="cultureBar"></i></div></div>
+<div class="metric"><small>Budget Remaining</small><div class="sub">HR and people budget still available</div><b id="budget">$100k</b></div>
+</section>
+
+<section class="workspace" id="workspace">
+<div class="card">
+<div class="head"><div><h3>Inbox</h3><small id="caseCount"></small></div><button class="btn" id="nextCaseBtn" onclick="nextOpenCase()">Next Case</button></div>
+<div class="list" id="emailList"></div>
+</div>
+<div class="card">
+<div class="head"><div><h3 id="caseTitle"></h3><small id="caseMeta"></small></div><span class="pill" id="caseCat"></span></div>
+<div class="detailbody" id="detailBody"></div>
+</div>
+</section>
+
+<section class="dashboard" id="dashboard">
+<div class="dashgrid">
+<div class="dashcard">
+<h3>Simulation Performance</h3>
+<div class="score" id="finalScore">—</div><div class="grade" id="grade">In progress</div>
+<p class="sub">Your score reflects organisational outcomes, not simply employee satisfaction or management approval.</p>
+<div id="summaryText"></div>
+</div>
+<div class="dashcard">
+<h3>Decision Profile</h3>
+<div id="profileText" class="sub"></div>
+</div>
+<div class="dashcard">
+<h3>Decision Log</h3>
+<div id="decisionLog"></div>
+</div>
+<div class="dashcard">
+<h3>Current Organisational Risks</h3>
+<div id="riskText"></div>
+</div>
+</div>
+</section>
+</main>
+</div>
+
+<div class="modal" id="modal"><div class="modalbox" id="modalbox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const cases = [{"id": 0, "day": 1, "time": "09:10", "sender": "Alicia Wong · Sales Director", "subject": "Urgent: Sales Manager Performance Issue", "preview": "I need HR support today. One of my managers is missing targets and the team is losing confidence.", "priority": "High", "category": "Performance", "body": "Hi HR,<br><br>I need your support with Marcus Tan, one of our Sales Managers. His team's quarterly results are 18% below target and two account executives have asked to move teams. I would like to place him on a formal Performance Improvement Plan immediately.<br><br>Can we proceed today?<br><br>Regards,<br>Alicia", "stakeholders": [{"name": "Alicia Wong", "role": "Sales Director", "tone": "impatient", "info": {"What has happened so far?": "Marcus has missed target for two quarters. I have spoken to him twice, but neither conversation was formally documented.", "What outcome do you want?": "I need improvement quickly. My preference is a formal PIP because the team is frustrated.", "Is there anything else I should know?": "He inherited two underperforming accounts after the reorganisation, but other managers also absorbed difficult accounts.", "How have Marcus's targets changed since the reorganisation?": "His target stayed the same even after the account changes. I still expected him to find a way to deliver.", "Have other Sales Managers faced similar difficulties?": "Yes, although the impact has varied. Some had stronger teams and more stable accounts."}}, {"name": "Marcus Tan", "role": "Sales Manager", "tone": "defensive", "info": {"How are things going?": "The targets were not adjusted after I lost my two strongest account executives. I've raised this informally several times.", "What support have you received?": "Very little. I was told to 'figure it out'. There has been no coaching plan.", "Why do you think team members want to transfer?": "One person told me the workload is unsustainable. I don't think this is only about my management.", "Did you raise the target or staffing issue with Alicia?": "Yes, but mostly in one-to-one conversations. I did not put a formal request in writing.", "What would a fair performance process look like to you?": "I would accept clear expectations, but I want the changed workload and lack of support considered first."}}, {"name": "Priya Nair", "role": "HR Business Partner", "tone": "analytical", "info": {"What does policy require?": "Our process expects documented expectations, evidence of support and an opportunity to respond before a formal PIP.", "What is the key risk?": "Starting a PIP without examining workload, target changes and prior support could create fairness and employee-relations risk.", "What would you do first?": "Review targets, performance history and Alicia's documentation, then hold a fact-finding meeting with Marcus.", "What evidence should HR review before deciding?": "Targets before and after the reorganisation, team changes, prior feedback, coaching records and comparable manager performance.", "Should Marcus be told that a PIP has been requested?": "Yes, but HR should first establish the facts so the discussion is not presented as a predetermined outcome."}}], "choices": [{"title": "Start the formal PIP immediately", "desc": "Prioritise speed and support the Sales Director.", "impact": {"trust": -8, "performance": 2, "risk": 10, "confidence": 5, "budget": 0, "culture": -3}, "outcome": "Alicia is pleased with HR's speed, but Marcus challenges the process. Team members begin discussing whether the outcome was predetermined.", "tags": ["management_first", "procedural_risk"]}, {"title": "Run a short fact-finding review first", "desc": "Review targets, workload and prior support before deciding.", "impact": {"trust": 7, "performance": -1, "risk": -8, "confidence": 4, "budget": -2500, "culture": 5}, "outcome": "The review finds that targets were not recalibrated after the reorganisation. A documented support plan is agreed before any formal PIP.", "tags": ["balanced", "evidence"]}, {"title": "Reject the PIP and recommend coaching only", "desc": "Keep the issue informal for now.", "impact": {"trust": 4, "performance": -4, "risk": -2, "confidence": -7, "budget": -1500, "culture": 2}, "outcome": "Marcus appreciates the support, but Alicia feels HR is avoiding a performance problem and escalates the issue to the COO.", "tags": ["employee_first", "manager_friction"]}], "followup": {"trigger_tag": "procedural_risk", "message": "Marcus has submitted a formal complaint alleging that the PIP decision was made before he was heard.", "severity": "high"}}, {"id": 1, "day": 1, "time": "11:35", "sender": "Jared Lim · Operations Director", "subject": "Request to Terminate Probationer", "preview": "The warehouse team says our new supervisor is not fitting in. Can we end probation this week?", "priority": "High", "category": "Employee Relations", "body": "Hi HR,<br><br>We hired Siti Rahman six weeks ago as a Warehouse Supervisor. Her manager says the team is pushing back against her style and productivity has dipped. He would like to end her employment during probation before we invest more time.<br><br>Please advise on the fastest route.<br><br>Jared", "stakeholders": [{"name": "Jared Lim", "role": "Operations Director", "tone": "commercial", "info": {"What is the performance problem?": "I have been told she is too rigid and the team doesn't like her approach.", "Are there documented incidents?": "Not that I've seen. Her manager gave me verbal feedback.", "Why the urgency?": "Peak season starts in three weeks and I don't want instability.", "Has anyone checked whether Siti's safety concerns are valid?": "Not formally. That is one reason I need HR to help us separate a style issue from a genuine operational concern.", "What would happen if HR delayed termination for a few weeks?": "We would need to manage the team tension through peak preparation, but it would give us more evidence."}}, {"name": "Siti Rahman", "role": "Warehouse Supervisor", "tone": "concerned", "info": {"How has onboarding been?": "I received one day of orientation. Most procedures were explained informally by team members.", "What difficulties are you facing?": "I discovered several safety shortcuts and asked the team to follow the written process. Since then, some team members have resisted me.", "Have you received feedback?": "My manager said I should 'fit in better' but didn't identify specific performance gaps.", "Can you give an example of a safety shortcut you challenged?": "Some checks were being completed after the fact rather than at the required point in the process.", "What support would help you succeed during probation?": "Clear expectations from my manager, proper onboarding and visible support for the written safety procedures."}}, {"name": "Daniel Koh", "role": "Warehouse Manager", "tone": "uneasy", "info": {"Why do you want her removed?": "The team worked smoothly before. She keeps changing how things are done.", "What changes?": "Mostly enforcing the documented safety and inventory checks.", "Has she breached policy?": "No. The issue is more that her management style is creating friction.", "Have you given Siti measurable probation expectations?": "No, not in a structured way. Most of my feedback has been verbal and focused on team friction.", "Could the team's resistance be related to the safety changes?": "Yes, that is possible. The old shortcuts were faster and people were used to them."}}], "choices": [{"title": "End employment during probation", "desc": "Use the probation clause and minimise disruption.", "impact": {"trust": -10, "performance": 3, "risk": 12, "confidence": 3, "budget": -5000, "culture": -6}, "outcome": "The termination is quick, but an exit interview raises concerns that Siti was penalised for enforcing safety procedures. The issue reaches senior management.", "tags": ["management_first", "safety_risk"]}, {"title": "Extend support and set clear probation goals", "desc": "Clarify expectations, provide onboarding and review again in four weeks.", "impact": {"trust": 8, "performance": 4, "risk": -7, "confidence": 5, "budget": -3000, "culture": 6}, "outcome": "Siti receives structured feedback and onboarding. Safety compliance improves and team productivity recovers after an initial adjustment.", "tags": ["balanced", "development"]}, {"title": "Transfer Siti to another site", "desc": "Move her to reduce immediate conflict.", "impact": {"trust": -2, "performance": -2, "risk": 1, "confidence": -3, "budget": -7000, "culture": -1}, "outcome": "The immediate tension disappears, but the underlying safety culture problem remains unresolved.", "tags": ["avoidance"]}], "followup": {"trigger_tag": "safety_risk", "message": "A minor warehouse incident occurs. An internal review finds that the disputed safety shortcuts were still in use.", "severity": "high"}}, {"id": 2, "day": 2, "time": "08:50", "sender": "Maya Chen · Finance Director", "subject": "Retention Counteroffer Request", "preview": "A senior analyst has resigned. Finance wants HR to approve a 22% counteroffer immediately.", "priority": "Medium", "category": "Reward", "body": "Hi HR,<br><br>Kenji has resigned after receiving an external offer. He is critical to the year-end reporting project. I would like approval for a 22% salary increase as a counteroffer. Losing him now would put the project at risk.<br><br>Can HR approve this by noon?<br><br>Maya", "stakeholders": [{"name": "Maya Chen", "role": "Finance Director", "tone": "urgent", "info": {"Why is he critical?": "He owns several reporting models and is the only analyst who understands two legacy systems.", "Why wasn't this addressed earlier?": "We knew he was strong, but budget constraints delayed a promotion discussion.", "What happens if he leaves?": "We could miss reporting milestones unless someone else learns the systems quickly.", "Is anyone able to take over Kenji's work immediately?": "Not completely. We can divide some tasks, but the legacy-system knowledge is concentrated with him.", "Would Finance support a development commitment as part of retention?": "Yes, provided we can make it credible and not delay the year-end project."}}, {"name": "Kenji Sato", "role": "Senior Analyst", "tone": "calm", "info": {"Why are you leaving?": "Compensation is part of it, but I also feel I've been doing manager-level work without a title or development path.", "Would you stay for more money?": "Possibly, but I don't want a temporary fix.", "What would change your mind?": "A credible development path and clarity about responsibilities matter more than just matching the offer.", "Have you discussed your career concerns before resigning?": "I raised them during performance discussions, but nothing concrete followed.", "If HR offered a smaller increase with a promotion pathway, would you consider it?": "Yes. I would look seriously at the whole package, not just the percentage increase."}}, {"name": "Leena Rao", "role": "Compensation Lead", "tone": "technical", "info": {"What is the pay context?": "A 22% increase would place Kenji above two managers and outside the current salary band.", "Can we make an exception?": "Yes, but it creates internal equity and precedent issues.", "What alternatives exist?": "A smaller market adjustment, retention payment, role review and a documented promotion pathway.", "How would a 22% increase affect internal equity?": "It would create compression and place Kenji outside the normal range for his current role.", "Could the role itself be re-evaluated?": "Yes. If his responsibilities genuinely exceed the current role, a formal job evaluation would be more defensible."}}], "choices": [{"title": "Approve the full 22% counteroffer", "desc": "Protect the year-end project at all costs.", "impact": {"trust": -5, "performance": 8, "risk": 3, "confidence": 5, "budget": -22000, "culture": -3}, "outcome": "Kenji stays, but salary compression becomes visible during the next compensation cycle. Two managers raise equity concerns.", "tags": ["quick_fix", "equity_risk"]}, {"title": "Offer a balanced retention package", "desc": "Combine a smaller adjustment, retention bonus and formal development plan.", "impact": {"trust": 7, "performance": 6, "risk": -2, "confidence": 7, "budget": -15000, "culture": 5}, "outcome": "Kenji accepts. Finance protects the project while HR begins a broader role and succession review.", "tags": ["balanced", "strategic"]}, {"title": "Decline the counteroffer and plan transition", "desc": "Protect compensation integrity and prepare for departure.", "impact": {"trust": 2, "performance": -10, "risk": -2, "confidence": -4, "budget": -3000, "culture": 1}, "outcome": "Kenji leaves professionally, but year-end reporting is delayed and Finance questions HR's commercial judgement.", "tags": ["principled", "business_cost"]}], "followup": {"trigger_tag": "equity_risk", "message": "Two Finance managers have asked why their direct report is now paid more than they are. One is considering resigning.", "severity": "medium"}}, {"id": 3, "day": 2, "time": "13:15", "sender": "Nora Aziz · Marketing", "subject": "Flexible Work Exception", "preview": "A high-performing employee wants to work remotely four days a week due to caregiving responsibilities.", "priority": "Medium", "category": "Flexible Work", "body": "Hi HR,<br><br>Emily has asked to work remotely four days per week for the next six months because of caregiving responsibilities. Our standard arrangement is two days remote. She is a high performer, but I am worried about setting a precedent for the wider team.<br><br>How should I respond?<br><br>Nora", "stakeholders": [{"name": "Nora Aziz", "role": "Marketing Director", "tone": "cautious", "info": {"What concerns you most?": "If I approve this, others may ask for the same arrangement.", "How has Emily performed remotely?": "Very well. She rarely misses deadlines and clients have not complained.", "Is physical presence essential?": "Not four days a week. We do have two collaboration days that matter.", "How often does Emily need to be physically present?": "Usually for campaign workshops and key stakeholder meetings, not necessarily every day.", "Are you worried other employees will request the same arrangement?": "Yes. My concern is less about Emily's performance and more about how I explain consistency to the wider team."}}, {"name": "Emily Goh", "role": "Brand Manager", "tone": "vulnerable", "info": {"Why do you need the arrangement?": "My father has started rehabilitation and I need to coordinate his appointments and home support.", "Can you attend key in-person days?": "Yes. I can commit to the two collaboration days unless there is an emergency.", "What happens if the request is declined?": "I may need to reduce hours or consider another role.", "How would four remote days affect your work?": "I can perform most of my work remotely and attend important meetings in person with notice.", "Is this request temporary?": "Yes. I am asking for six months while my caregiving situation is particularly demanding."}}, {"name": "Priya Nair", "role": "HR Business Partner", "tone": "balanced", "info": {"What is the precedent risk?": "A documented temporary exception with clear criteria is different from changing policy for everyone.", "What should we document?": "Duration, review date, role requirements, performance expectations and on-site commitments.", "What is the business angle?": "Retention risk is real, and her role is difficult to replace quickly.", "How should HR assess an exception fairly?": "Use clear criteria such as role requirements, performance, duration, operational impact and review points.", "What documentation would you recommend?": "A time-limited written arrangement with expected office attendance, performance expectations and a review date."}}], "choices": [{"title": "Decline and apply the policy consistently", "desc": "Keep the two-day remote standard for everyone.", "impact": {"trust": -7, "performance": -3, "risk": 2, "confidence": 4, "budget": 0, "culture": -5}, "outcome": "Nora appreciates the consistency, but Emily starts exploring external opportunities and team sentiment drops.", "tags": ["rigid", "retention_risk"]}, {"title": "Approve a six-month documented exception", "desc": "Set review points and required in-person days.", "impact": {"trust": 8, "performance": 3, "risk": -2, "confidence": 3, "budget": 0, "culture": 6}, "outcome": "Emily remains productive and the team understands why the arrangement is temporary and role-specific.", "tags": ["balanced", "flexible"]}, {"title": "Approve permanently with no special conditions", "desc": "Give Emily maximum flexibility.", "impact": {"trust": 5, "performance": 1, "risk": 3, "confidence": -5, "budget": 0, "culture": 1}, "outcome": "Emily is grateful, but several managers complain that HR is creating policy through exceptions.", "tags": ["employee_first", "precedent"]}], "followup": {"trigger_tag": "retention_risk", "message": "Emily has submitted her resignation. Marketing estimates a three-month replacement gap.", "severity": "medium"}}, {"id": 4, "day": 3, "time": "09:05", "sender": "CEO Office", "subject": "Confidential: Senior Executive Complaint", "preview": "The CEO wants a sensitive complaint involving a business unit head handled discreetly.", "priority": "Critical", "category": "Investigations", "body": "HR Manager,<br><br>A complaint has been made about Victor Lee, Head of Consumer Business. The complainant alleges repeated humiliating comments in leadership meetings. The CEO would prefer this to be handled quietly given Victor's commercial importance and an upcoming investor presentation.<br><br>Please advise today.", "stakeholders": [{"name": "CEO", "role": "Chief Executive Officer", "tone": "controlled", "info": {"What does 'quietly' mean?": "I do not want unnecessary disruption or rumours before the investor presentation.", "Do you expect a specific outcome?": "No, but Victor is commercially important and I expect proportionality.", "Will you support a formal process if needed?": "Yes, if HR believes the evidence justifies it.", "What does the CEO expect HR to protect here?": "Both the employee and the company. I also need the commercial disruption managed carefully.", "Would you support an independent investigation?": "If HR believes that is proportionate and necessary, yes, but I want tight confidentiality."}}, {"name": "Rachel Ong", "role": "Complainant · Strategy Director", "tone": "guarded", "info": {"What happened?": "Victor has repeatedly mocked my ideas in front of others and once said I was 'not senior enough to understand the business'.", "Are there witnesses?": "Yes. At least four senior managers were present for two of the incidents.", "What outcome do you want?": "I want the behaviour to stop. I am worried that complaining will damage my career.", "Were there witnesses to the incidents?": "Yes. Several leadership team members were present during at least two of the meetings.", "What outcome are you seeking?": "I want the behaviour to stop and I want confidence that raising this will not damage my career."}}, {"name": "Victor Lee", "role": "Head of Consumer Business", "tone": "confident", "info": {"How do you respond?": "I challenge people hard. That is part of a high-performance culture.", "Have you commented on Rachel's seniority?": "Possibly. I do not remember the exact wording.", "Would you participate in a formal process?": "Yes, but I would be disappointed if robust debate is being treated as misconduct.", "Have you received feedback about your behaviour before?": "I have been told I can be direct. I have not previously been told that my conduct was considered humiliating.", "Would you participate in a formal investigation?": "Yes. I would expect the allegations and evidence to be put to me fairly."}}], "choices": [{"title": "Handle informally with a private warning", "desc": "Avoid disruption and address behaviour directly.", "impact": {"trust": -6, "performance": 4, "risk": 8, "confidence": 5, "budget": -1000, "culture": -7}, "outcome": "Victor moderates his behaviour briefly, but witnesses conclude that senior leaders are treated differently from other employees.", "tags": ["executive_exception", "culture_risk"]}, {"title": "Open a proportionate formal investigation", "desc": "Use an independent investigator and protect confidentiality.", "impact": {"trust": 9, "performance": -3, "risk": -9, "confidence": 2, "budget": -12000, "culture": 8}, "outcome": "The investigation substantiates several incidents. Victor remains in role but receives formal sanctions, coaching and conduct expectations.", "tags": ["balanced", "integrity"]}, {"title": "Wait until after the investor presentation", "desc": "Delay action for two weeks to reduce business disruption.", "impact": {"trust": -9, "performance": 5, "risk": 10, "confidence": 0, "budget": 0, "culture": -8}, "outcome": "News of the complaint spreads before HR acts. Rachel loses confidence in the process and seeks external advice.", "tags": ["delay", "legal_risk"]}], "followup": {"trigger_tag": "executive_exception", "message": "A second employee has raised a similar complaint and says the first case showed that senior leaders are protected.", "severity": "high"}}, {"id": 5, "day": 3, "time": "14:40", "sender": "Talent Acquisition", "subject": "AI Screening Tool Proposal", "preview": "Recruitment wants to deploy an AI tool that ranks applicants automatically.", "priority": "Medium", "category": "Technology", "body": "Hi HR,<br><br>Our recruitment team has piloted an AI screening tool that ranks candidates based on CV content and historical hiring patterns. It could reduce screening time by 60%. The vendor says the model is 'bias-aware'. Can we roll it out across professional roles next month?", "stakeholders": [{"name": "Samantha Lee", "role": "Talent Acquisition Lead", "tone": "enthusiastic", "info": {"What problem does this solve?": "Recruiters are spending too much time screening high-volume professional roles.", "How was it tested?": "We ran it on past applications and compared the rankings with previous hiring decisions.", "Any concerns?": "We do not fully understand how the ranking weights are generated.", "What problem is the AI tool intended to solve?": "Recruiters spend too much time screening high-volume applications, which delays shortlisting.", "Has the tool been tested across different candidate groups?": "Only in a limited pilot. We have not completed a full fairness analysis."}}, {"name": "Arun Patel", "role": "Data Protection Officer", "tone": "cautious", "info": {"What data concerns exist?": "We need clarity on data retention, model training use and cross-border processing.", "What governance is needed?": "Human oversight, documented criteria, auditability and candidate transparency.", "Can we use it at all?": "Potentially, but not as a black-box automatic decision-maker.", "What data protection questions should HR ask?": "What data is processed, the lawful basis, vendor access, retention, explainability and how candidates are informed.", "Should candidates be told AI is being used?": "Transparency would be advisable, particularly if the tool materially influences screening."}}, {"name": "Mei Lin", "role": "Recruiter", "tone": "practical", "info": {"How did the pilot feel?": "Fast, but some unconventional candidates were ranked surprisingly low.", "Could humans override it?": "Yes, but people may anchor on the score.", "What would help?": "Use it as a prioritisation aid, not a rejection tool, and audit outcomes regularly.", "What did recruiters notice during the pilot?": "The rankings looked efficient, but some strong nontraditional candidates appeared unusually low.", "Do recruiters tend to follow the AI ranking?": "Yes. Once a score is visible, it can anchor the recruiter's judgement even when human review is required."}}], "choices": [{"title": "Roll out fully and automate rejection thresholds", "desc": "Maximise efficiency immediately.", "impact": {"trust": -5, "performance": 8, "risk": 11, "confidence": 4, "budget": 5000, "culture": -4}, "outcome": "Recruitment speeds up sharply, but a later audit finds that non-traditional candidates were disproportionately filtered out.", "tags": ["automation_risk", "efficiency"]}, {"title": "Use AI as decision support with human review", "desc": "Pilot with safeguards, audits and transparency.", "impact": {"trust": 5, "performance": 5, "risk": -5, "confidence": 6, "budget": -6000, "culture": 4}, "outcome": "Screening time falls while recruiters retain decision ownership. HR establishes an AI governance checklist.", "tags": ["balanced", "governance"]}, {"title": "Reject the technology entirely", "desc": "Avoid algorithmic risk.", "impact": {"trust": 2, "performance": -6, "risk": -4, "confidence": -4, "budget": 0, "culture": 0}, "outcome": "Risk is contained, but recruitment backlogs worsen and leaders question whether HR is keeping pace with the business.", "tags": ["conservative", "business_cost"]}], "followup": {"trigger_tag": "automation_risk", "message": "A rejected applicant has asked the company to explain how the AI tool influenced the decision.", "severity": "medium"}}, {"id": 6, "day": 4, "time": "08:30", "sender": "Chief Operating Officer", "subject": "Restructure: Reduce Headcount by 8%", "preview": "The business needs an 8% cost reduction. The COO wants a headcount plan by Friday.", "priority": "Critical", "category": "Restructuring", "body": "HR,<br><br>We need to reduce operating cost materially this quarter. Please prepare a plan to reduce headcount by approximately 8%, with the least possible impact on customer delivery. Business heads are asking whether they can nominate individuals directly.", "stakeholders": [{"name": "COO", "role": "Chief Operating Officer", "tone": "direct", "info": {"What is driving the reduction?": "Margin pressure and lower demand in two business units.", "How fixed is the 8% target?": "The cost target is fixed; the exact headcount number is not.", "What do you need from HR?": "A process that is fast, defensible and keeps critical capability.", "Is the 8% headcount reduction fixed?": "The cost-saving target is fixed; the exact number of roles is not.", "What business capabilities must be protected?": "Customer-facing delivery, core technology capability and several regulatory functions are priorities."}}, {"name": "Priya Nair", "role": "HR Business Partner", "tone": "serious", "info": {"What is the biggest process risk?": "Allowing managers to nominate names first can embed bias and inconsistency.", "What is a better approach?": "Define future-state roles, selection criteria and governance before assessing individuals.", "How do we reduce disruption?": "Use workforce data, succession risk and critical-skill mapping alongside cost.", "What criteria would make the restructure defensible?": "Start with future-state work and roles, then use objective selection criteria that can be consistently evidenced.", "What should HR avoid?": "Allowing managers to simply nominate people they prefer to lose without role-based rationale."}}, {"name": "Leonard Tan", "role": "Business Unit Head", "tone": "political", "info": {"Can managers nominate people?": "I already know who I would remove. Some people are simply not pulling their weight.", "Would you use performance ratings?": "Yes, but I would also use 'fit' and attitude.", "Any critical roles?": "Several. If we lose the wrong people, customer delivery will suffer.", "Why do managers want to nominate individuals?": "We know who is performing and who is difficult to manage, so it feels faster.", "Could personal relationships influence nominations?": "Potentially. That is why I would expect HR to challenge our recommendations where necessary."}}], "choices": [{"title": "Let business heads nominate individuals", "desc": "Move quickly and trust line management judgement.", "impact": {"trust": -12, "performance": 4, "risk": 12, "confidence": 7, "budget": 12000, "culture": -10}, "outcome": "The process is fast, but selection logic varies sharply across teams and several employees challenge the fairness of the exercise.", "tags": ["manager_led", "restructure_risk"]}, {"title": "Design roles and criteria before selecting people", "desc": "Use future-state design, critical skills and moderated criteria.", "impact": {"trust": 8, "performance": 3, "risk": -10, "confidence": 4, "budget": 4000, "culture": 6}, "outcome": "The process takes longer but results in fewer critical-skill losses and stronger documentation.", "tags": ["balanced", "strategic"]}, {"title": "Use voluntary separation only", "desc": "Avoid compulsory selection where possible.", "impact": {"trust": 7, "performance": -5, "risk": -4, "confidence": -6, "budget": -15000, "culture": 4}, "outcome": "Employee relations remain stable, but the voluntary exits do not align well with the capability areas where costs need to fall.", "tags": ["employee_first", "capability_loss"]}], "followup": {"trigger_tag": "restructure_risk", "message": "Two employees have alleged that their managers used the restructure to remove people they personally disliked.", "severity": "high"}}, {"id": 7, "day": 4, "time": "15:20", "sender": "Product Division", "subject": "Promotion Dispute", "preview": "Two candidates were considered for promotion. The unsuccessful employee alleges favouritism.", "priority": "Medium", "category": "Talent", "body": "Hi HR,<br><br>We promoted Daniel to Product Lead. The other shortlisted employee, Farah, has challenged the decision and says the role was 'always going to Daniel'. The manager did not use a formal scoring matrix, but says Daniel was the obvious choice. Please advise.", "stakeholders": [{"name": "Farah Malik", "role": "Senior Product Specialist", "tone": "frustrated", "info": {"Why do you believe the process was unfair?": "Daniel has worked with the manager for years and was given more visibility opportunities.", "Were criteria shared?": "Only broad criteria. There was no structured interview or scoring.", "What do you want?": "I want the decision reviewed and a clear explanation of what I need to do to progress.", "Were promotion criteria communicated before the decision?": "No. I knew a promotion was possible, but I never saw formal criteria or a scoring process.", "What makes you believe favouritism was involved?": "Daniel has a much closer relationship with Ethan and received opportunities that I was not offered."}}, {"name": "Ethan Chua", "role": "Product Director", "tone": "defensive", "info": {"Why Daniel?": "He has stronger stakeholder presence and I trust him with senior executives.", "How was this assessed?": "Based on my experience working with both candidates.", "Would a formal review change the outcome?": "Possibly not, but I accept the process could have been more structured.", "What evidence did you use to select Daniel?": "Client visibility, leadership potential and my judgement of readiness. I did not use a formal scoring matrix.", "How would Farah compare on objective performance measures?": "Her performance is strong. The difference was mainly my assessment of leadership readiness."}}, {"name": "Priya Nair", "role": "HR Business Partner", "tone": "balanced", "info": {"What is the core issue?": "Even if Daniel is the stronger candidate, the process lacks evidence and transparency.", "What can HR do now?": "Review the decision logic, document evidence, provide feedback and strengthen future promotion governance.", "Should the promotion be reversed?": "Only if the review shows the decision cannot be supported.", "What should HR review in the promotion process?": "Role criteria, performance evidence, access to development opportunities and whether the decision was applied consistently.", "Would reviewing the process mean automatically reversing the promotion?": "No. HR can examine whether the process was fair before deciding what remedy, if any, is appropriate."}}], "choices": [{"title": "Defend the manager's decision", "desc": "Treat promotion as a management judgement call.", "impact": {"trust": -6, "performance": 3, "risk": 5, "confidence": 5, "budget": 0, "culture": -5}, "outcome": "The promotion stands, but Farah disengages and employees question whether career progression depends on sponsorship rather than merit.", "tags": ["manager_first", "fairness_risk"]}, {"title": "Review the process and evidence", "desc": "Assess whether the decision can be substantiated and improve governance.", "impact": {"trust": 7, "performance": 1, "risk": -5, "confidence": 2, "budget": -1500, "culture": 5}, "outcome": "Daniel remains the selected candidate, but Farah receives evidence-based feedback and a development plan. Future promotions use structured criteria.", "tags": ["balanced", "fairness"]}, {"title": "Reverse the promotion immediately", "desc": "Reset the process to demonstrate fairness.", "impact": {"trust": 4, "performance": -7, "risk": -1, "confidence": -8, "budget": -3000, "culture": 1}, "outcome": "Employees see HR taking fairness seriously, but Product leadership loses confidence in HR and Daniel's engagement drops sharply.", "tags": ["overcorrection"]}], "followup": {"trigger_tag": "fairness_risk", "message": "Farah has applied externally and cited lack of transparency in promotion decisions during her exit interview.", "severity": "medium"}}, {"id": 8, "day": 5, "time": "10:00", "sender": "Internal Audit", "subject": "Confidentiality Breach", "preview": "A manager accidentally forwarded an employee relations email to the wrong distribution list.", "priority": "Critical", "category": "Privacy", "body": "HR,<br><br>A department manager accidentally forwarded an email containing details of an employee's disciplinary case to a distribution list of 18 employees. The message has since been recalled, but several recipients opened it. We need an immediate response plan.", "stakeholders": [{"name": "Arun Patel", "role": "Data Protection Officer", "tone": "urgent", "info": {"What should happen first?": "Contain the breach, identify recipients, preserve records and assess notification obligations.", "Should we discipline the manager?": "That depends on intent, negligence, training and prior incidents.", "What about the affected employee?": "They should be informed promptly and supported.", "What is the immediate privacy risk?": "The information has already reached people who had no business need to see it. Further forwarding is the immediate concern.", "What should be done first?": "Contain the distribution, preserve evidence, assess what was disclosed and determine notification and remediation steps."}}, {"name": "Grace Lim", "role": "Affected Employee", "tone": "distressed", "info": {"What concerns you most?": "People now know about a disciplinary matter that was supposed to be confidential.", "What do you want from the company?": "A clear explanation, accountability and reassurance that this will not happen again.", "Has anyone contacted you?": "Not yet.", "What impact has the disclosure had on you?": "I feel exposed because colleagues now know details that should have remained private.", "What would you expect HR to do?": "Tell me clearly what happened, who received it, what is being done and how recurrence will be prevented."}}, {"name": "Thomas Ng", "role": "Manager who sent email", "tone": "apologetic", "info": {"How did this happen?": "Autocomplete selected the department list instead of the HR mailbox.", "Were you trained on handling sensitive HR data?": "Only through an online module last year.", "Have you contacted Grace?": "No. I was told to wait for HR.", "How did the email get sent to the wrong group?": "I selected a distribution list with a similar name and did not notice before sending.", "Did you try to recall or contain the email?": "Yes, as soon as I realised, but I do not know how many recipients had already opened it."}}], "choices": [{"title": "Focus on containment and keep the matter quiet", "desc": "Avoid drawing further attention to the breach.", "impact": {"trust": -8, "performance": 1, "risk": 8, "confidence": 3, "budget": -500, "culture": -6}, "outcome": "Operational disruption is limited, but Grace hears about the breach from a colleague before HR contacts her.", "tags": ["silence", "privacy_risk"]}, {"title": "Notify Grace, investigate and remediate", "desc": "Contain, assess, communicate and strengthen controls.", "impact": {"trust": 8, "performance": -1, "risk": -8, "confidence": 4, "budget": -5000, "culture": 6}, "outcome": "Grace is upset but appreciates the direct response. HR updates handling protocols and targeted training.", "tags": ["balanced", "integrity"]}, {"title": "Immediately issue a final warning to the manager", "desc": "Demonstrate zero tolerance before completing the review.", "impact": {"trust": 3, "performance": -2, "risk": 1, "confidence": -4, "budget": -1000, "culture": -1}, "outcome": "Some employees welcome accountability, but others feel HR acted before establishing the facts.", "tags": ["overcorrection"]}], "followup": {"trigger_tag": "privacy_risk", "message": "Grace has raised a formal grievance about how the company handled the confidentiality breach.", "severity": "high"}}, {"id": 9, "day": 5, "time": "14:10", "sender": "Learning & Development", "subject": "Mandatory Leadership Programme", "preview": "The CHRO wants all managers to attend a new leadership programme, but business units are resisting the time commitment.", "priority": "Low", "category": "Learning", "body": "Hi HR,<br><br>The CHRO has sponsored a new two-day leadership programme after weak engagement survey results. Several business heads are refusing to release managers because of workload. We need a recommendation on whether attendance should be mandatory.", "stakeholders": [{"name": "CHRO", "role": "Chief Human Resources Officer", "tone": "committed", "info": {"Why this programme?": "Engagement data shows weak feedback quality, low trust in managers and inconsistent people practices.", "Why mandatory?": "The weakest managers are also the least likely to volunteer.", "Can the design change?": "Yes, but I do not want the programme diluted into another optional webinar.", "What behaviour should change after the programme?": "Managers should give clearer feedback, handle performance issues consistently and build stronger team trust.", "Would you accept staggered delivery?": "Yes, if participation remains required and the learning objectives are protected."}}, {"name": "Leonard Tan", "role": "Business Unit Head", "tone": "resistant", "info": {"Why are you resisting?": "Two days away from operations is a real cost.", "Do your managers need development?": "Some do, but not all.", "What would make it workable?": "Shorter modules, staggered cohorts and clear evidence that it affects performance.", "Which part of the programme creates the biggest operational problem?": "Two consecutive full days. Staggered shorter modules would be much easier to schedule.", "Would you release managers if outcomes were measured?": "I would be more supportive if we could see a credible link to team and business outcomes."}}, {"name": "Mei Lin", "role": "People Analytics Lead", "tone": "evidence-based", "info": {"What does the data show?": "Teams with lower manager effectiveness scores have 1.8x higher regrettable turnover.", "Can we target the programme?": "Yes, but targeted attendance may stigmatise managers.", "How should success be measured?": "Manager behaviour measures, turnover, engagement pulse data and team-level outcomes.", "Which managers appear to need the programme most?": "The lowest manager-effectiveness scores cluster in teams with higher regrettable turnover and weaker engagement.", "When should HR measure impact?": "Use a baseline, an early pulse after training and a later check once managers have had time to apply the behaviours."}}], "choices": [{"title": "Make the two-day programme mandatory for all managers", "desc": "Prioritise consistency and leadership standards.", "impact": {"trust": 4, "performance": -4, "risk": -1, "confidence": 3, "budget": -14000, "culture": 6}, "outcome": "Attendance is high and standards become clearer, but some business units resent the operational burden.", "tags": ["standardisation"]}, {"title": "Stagger delivery and require participation with flexibility", "desc": "Maintain the requirement while adapting format and timing.", "impact": {"trust": 6, "performance": 2, "risk": -1, "confidence": 6, "budget": -17000, "culture": 7}, "outcome": "Participation remains high and business disruption is reduced. Follow-up data shows stronger manager feedback scores.", "tags": ["balanced", "development"]}, {"title": "Make attendance fully optional", "desc": "Let managers and business heads decide.", "impact": {"trust": 0, "performance": 3, "risk": 0, "confidence": -5, "budget": -7000, "culture": -3}, "outcome": "Operational impact is minimal, but many of the managers with the weakest people scores do not attend.", "tags": ["avoidance"]}], "followup": null}, {"id": 10, "day": 6, "time": "09:25", "sender": "Customer Success", "subject": "Employee Burnout Concern", "preview": "A team has been working late for months. The manager says overtime is necessary until a product launch is complete.", "priority": "High", "category": "Wellbeing", "body": "Hi HR,<br><br>Several Customer Success employees have told HR informally that the team is exhausted and working late most evenings. The manager says this is temporary and essential for the product launch. No one has filed a formal complaint. How should we intervene?", "stakeholders": [{"name": "Olivia Tan", "role": "Customer Success Manager", "tone": "pressured", "info": {"Why are people working late?": "The launch generated far more client issues than forecast.", "How long has this continued?": "Around ten weeks.", "What support have you requested?": "I asked for two temporary contractors but budget approval was declined.", "What work could be deprioritised immediately?": "Some reporting and lower-priority client requests could be delayed, but we need leadership agreement.", "Have you discussed workload openly with the team?": "Not enough. I have been focused on keeping the launch moving and probably underestimated how exhausted people are."}}, {"name": "Ryan Koh", "role": "Customer Success Executive", "tone": "tired", "info": {"How is the team coping?": "People are exhausted. Two colleagues are job hunting.", "Why hasn't anyone complained formally?": "We worry it will be seen as lack of commitment during a critical launch.", "What would help?": "More capacity, clear prioritisation and permission to stop treating every issue as urgent.", "How many hours are people actually working?": "It varies, but several of us are regularly working late evenings and checking issues on weekends.", "Would temporary contractors solve the problem?": "They would help, especially with routine client issues, but priorities also need to be clearer."}}, {"name": "Finance Partner", "role": "Business Finance", "tone": "cost-focused", "info": {"Why were contractors declined?": "The division is already over budget.", "What would turnover cost?": "Replacing two experienced employees would likely cost more than short-term contractors.", "Could we fund temporary support?": "Yes, if the business deprioritises other discretionary spend.", "What is the likely cost of losing experienced staff?": "Recruitment, onboarding and lost productivity would likely exceed the cost of temporary support.", "Where could funding for contractors come from?": "The business could defer some discretionary projects or use contingency funds with approval."}}], "choices": [{"title": "Let the manager continue until launch stabilises", "desc": "Avoid intervention during a critical business period.", "impact": {"trust": -9, "performance": 4, "risk": 5, "confidence": 4, "budget": 0, "culture": -7}, "outcome": "The launch stabilises, but two experienced employees resign within a month and the remaining team is resentful.", "tags": ["short_term", "turnover_risk"]}, {"title": "Fund temporary support and reset priorities", "desc": "Address workload while protecting launch-critical service.", "impact": {"trust": 9, "performance": 5, "risk": -4, "confidence": 5, "budget": -12000, "culture": 7}, "outcome": "Workload becomes manageable and client service remains stable. The team reports improved confidence in management.", "tags": ["balanced", "wellbeing"]}, {"title": "Issue a directive banning overtime", "desc": "Make wellbeing the immediate priority.", "impact": {"trust": 6, "performance": -8, "risk": -3, "confidence": -6, "budget": 0, "culture": 3}, "outcome": "Hours improve immediately, but customer response times deteriorate because underlying capacity constraints are unresolved.", "tags": ["overcorrection"]}], "followup": {"trigger_tag": "turnover_risk", "message": "Two experienced Customer Success employees have resigned within the same week.", "severity": "medium"}}, {"id": 11, "day": 6, "time": "15:45", "sender": "Regional Managing Director", "subject": "High Performer Misconduct", "preview": "A top salesperson is accused of manipulating expense claims. Leadership wants to know whether performance should be considered.", "priority": "Critical", "category": "Conduct", "body": "HR,<br><br>Internal Audit found several questionable expense claims submitted by our top salesperson, Adrian. The total value is not large, but the pattern appears deliberate. He generates significant revenue and is due to lead a major client pitch next week. Please advise.", "stakeholders": [{"name": "Regional MD", "role": "Regional Managing Director", "tone": "conflicted", "info": {"What concerns you most?": "Losing Adrian could cost us a major account.", "Do you believe performance should matter?": "Not formally, but I would be lying if I said it is irrelevant commercially.", "Would you support sanctions?": "Yes, if the evidence is clear.", "How important is Adrian to the upcoming client pitch?": "Very important, but we do have other senior salespeople who could step in with preparation.", "Would commercial impact change the misconduct standard?": "It should not change the standard, although it affects how we manage the business consequences."}}, {"name": "Adrian Low", "role": "Senior Sales Executive", "tone": "assertive", "info": {"How do you explain the claims?": "Some were estimates because I was travelling constantly.", "Why are there repeated inconsistencies?": "I was careless. I did not intend to defraud the company.", "Would you repay disputed amounts?": "Yes.", "Did you know the receipt values had been altered?": "I knew some claims were approximate, but I dispute that I deliberately tried to steal from the company.", "Has this happened before?": "Not that I am aware of. My expense history has generally been accepted without issue."}}, {"name": "Internal Audit", "role": "Audit Manager", "tone": "firm", "info": {"What did you find?": "Four claims included altered receipt values. The pattern is unlikely to be accidental.", "How much money is involved?": "Less than $2,000 in total.", "What is the policy position?": "Deliberate falsification is categorised as serious misconduct regardless of value.", "How confident are you that the alterations were deliberate?": "The repeated pattern and the direction of the changes make an accidental explanation unlikely.", "What evidence should a misconduct process examine?": "Original receipts, submitted claims, system records, Adrian's explanation and any comparable prior cases."}}], "choices": [{"title": "Give a warning and require repayment", "desc": "Recognise commercial value and proportionality.", "impact": {"trust": -8, "performance": 6, "risk": 7, "confidence": 5, "budget": 2000, "culture": -8}, "outcome": "Adrian remains for the client pitch, but employees later question why falsification by a top performer did not attract stronger consequences.", "tags": ["star_exception", "culture_risk"]}, {"title": "Run formal misconduct process consistently", "desc": "Separate performance value from conduct standards.", "impact": {"trust": 10, "performance": -5, "risk": -8, "confidence": 3, "budget": -4000, "culture": 9}, "outcome": "The process substantiates deliberate falsification and results in dismissal. The client pitch is disrupted, but conduct standards are reinforced.", "tags": ["balanced", "integrity"]}, {"title": "Delay action until after the client pitch", "desc": "Protect immediate revenue before proceeding.", "impact": {"trust": -10, "performance": 8, "risk": 8, "confidence": 4, "budget": 0, "culture": -9}, "outcome": "Adrian leads the pitch successfully, but the delay becomes known and is interpreted as preferential treatment.", "tags": ["delay", "star_exception"]}], "followup": {"trigger_tag": "star_exception", "message": "An employee has anonymously asked whether company values apply differently to top performers.", "severity": "medium"}}];
+const events = [{"day": 2, "title": "Pulse Survey Update", "text": "Employee trust in line managers has fallen 4 points. Comments repeatedly mention inconsistent treatment between teams.", "impact": {"trust": -2, "culture": -1}}, {"day": 3, "title": "CEO Request", "text": "The CEO asks HR to present a one-page view of the organisation's biggest people risks at the next executive meeting.", "impact": {"confidence": 1}}, {"day": 4, "title": "Hiring Freeze", "text": "Finance imposes a temporary hiring freeze on non-critical roles. Replacement hiring will now require CFO approval.", "impact": {"performance": -1, "budget": 5000}}, {"day": 5, "title": "Glassdoor Review", "text": "A critical anonymous review mentions 'good people, inconsistent managers, HR depends on who your boss is'.", "impact": {"trust": -2, "culture": -2}}, {"day": 6, "title": "Executive Attention", "text": "The CHRO wants to know whether HR is becoming more strategic or simply processing cases.", "impact": {"confidence": 0}}];
+const stakeholderInterjections={"0": {"0": ["Sales Operations clarification", "Alicia receives confirmation that Marcus lost two established accounts during the reorganisation, although his target was not adjusted."], "1": ["Account allocation record", "Marcus shows HR an account-allocation report confirming that two mature accounts were reassigned shortly before his performance declined."], "2": ["HR file check", "Priya checks the HR file and finds no documented coaching plan, written warning or agreed performance-support plan for Marcus."]}, "1": {"0": ["Operations update", "Jared is informed that the safety procedure Siti has been enforcing is part of the warehouse's documented operating standard."], "1": ["Safety representative message", "Siti receives a note from the safety representative supporting the checks she has been insisting on."], "2": ["Onboarding review", "Daniel discovers that Siti never received the full supervisor onboarding package given to other new supervisors."]}, "2": {"0": ["Project dependency update", "Maya learns that Kenji is the only team member able to troubleshoot one part of the legacy finance system without external support."], "1": ["Career discussion note", "Kenji produces notes from an earlier review showing that he had already raised concerns about progression and role scope."], "2": ["Compensation analysis", "Leena's modelling shows that a 22% increase would place Kenji above the normal salary range for his current role."]}, "3": {"0": ["Campaign calendar review", "Nora sees that most critical face-to-face workshops occur on only two days each month."], "1": ["Work pattern evidence", "Emily shares a six-month performance record showing consistently strong results while working flexibly on an informal basis."], "2": ["Policy comparison", "Priya finds that several temporary flexible-work exceptions have previously been approved in other functions."]}, "4": {"0": ["CEO office message", "The CEO confirms that commercial sensitivity matters, but does not want HR to ignore a substantiated conduct issue."], "1": ["Witness contact", "Rachel tells HR that another senior employee witnessed two of the incidents and is willing to speak confidentially."], "2": ["Prior feedback located", "Victor's previous leadership feedback contains comments that his communication style can become intimidating under pressure."]}, "5": {"0": ["Pilot performance report", "Samantha receives pilot data showing a large reduction in recruiter screening time, but no completed fairness audit."], "1": ["Privacy assessment note", "Arun identifies several unresolved questions about candidate notice, data retention and vendor access."], "2": ["Recruiter observation", "Mei Lin shows examples where non-traditional candidates were ranked low despite strong recruiter assessments."]}, "6": {"0": ["CFO clarification", "The COO is told that the financial target is fixed, but the organisation does not need to eliminate exactly 8% of roles."], "1": ["Selection-risk warning", "Priya identifies that several manager nomination lists use vague labels such as 'not a fit' without objective evidence."], "2": ["Capability map", "Leonard's business-unit review shows that some nominated employees hold skills needed in the proposed future operating model."]}, "7": {"0": ["Additional evidence from Farah", "Farah provides records showing she requested stretch assignments twice but was not selected."], "1": ["Promotion notes review", "Ethan's notes show strong confidence in Daniel but no documented comparison against Farah or other candidates."], "2": ["HR data check", "Priya finds that promotion processes vary significantly between departments and formal criteria are rarely documented."]}, "8": {"0": ["Security update", "Arun confirms that several recipients opened the message before recall and one copy was forwarded internally."], "1": ["Employee impact update", "Grace reports that two colleagues have already approached her about information contained in the email."], "2": ["Sender timeline", "Thomas provides the original email chain showing that the wrong distribution list was selected seconds before sending."]}, "9": {"0": ["CHRO clarification", "The CHRO says the objective is behaviour change, not attendance at a two-day course for its own sake."], "1": ["Operations scheduling analysis", "Leonard identifies several low-volume periods when managers could attend shorter modules with less disruption."], "2": ["People analytics result", "Mei Lin finds that low manager-effectiveness scores are concentrated in teams with materially higher regrettable turnover."]}, "10": {"0": ["Workload review", "Olivia sees that several recurring reports could be paused without affecting the product launch."], "1": ["Team pulse message", "Ryan shares anonymous team feedback showing that several employees are considering leaving if the workload continues."], "2": ["Finance option", "The Finance Partner confirms contractor support could be funded by deferring two lower-priority initiatives."]}, "11": {"0": ["Client coverage update", "The Regional MD learns that another senior salesperson could lead the upcoming pitch with preparation."], "1": ["Expense pattern review", "Adrian is shown a sample of altered claims and disputes intent, but acknowledges some amounts were knowingly estimated upward."], "2": ["Audit evidence", "Internal Audit confirms that multiple altered amounts all increased reimbursement rather than reducing it."]}};
+const sgLaw={"0": [["GUIDANCE", "Performance and wrongful dismissal", "Poor performance can be a valid reason for dismissal, but HR should establish and document the performance basis and ensure the dismissal is not for a wrongful reason.", "MOM — Wrongful dismissal"]], "1": [["LAW", "Termination and probation", "Probation does not remove contractual termination requirements. Written notice should follow the employment contract, or salary in lieu of notice may be paid.", "MOM — Termination at end of probation"], ["LAW / SAFETY", "Safety concerns", "Where the dispute involves workplace safety procedures, HR should establish the safety facts before treating the matter simply as a culture-fit issue.", "MOM — Workplace Safety and Health framework"]], "2": [["HR / CONTRACT", "Retention and compensation", "A counteroffer is mainly a compensation and contract decision. HR should consider internal equity, salary structures and whether the employee's responsibilities justify re-evaluating the role.", "Employment contract / compensation governance"]], "3": [["TRIPARTITE GUIDANCE", "Flexible work requests", "Formal flexible-work requests should be properly considered. The framework does not create an automatic right to the requested arrangement; employers should assess the request on business grounds and respond appropriately.", "MOM — Flexible Work Arrangement Requests"]], "4": [["GUIDANCE", "Workplace complaints", "HR should establish facts, apply a fair process, protect confidentiality as far as practicable and avoid retaliation or predetermined outcomes.", "Tripartite fair-employment / grievance principles"]], "5": [["LAW + GUIDANCE", "AI recruitment and personal data", "Recruitment technology can engage PDPA obligations when personal data is collected, used or disclosed. HR should also consider transparency, human oversight and fair-employment risks.", "PDPC / fair-employment guidance"]], "6": [["LAW", "Mandatory retrenchment notification", "A Singapore-registered employer with at least 10 employees must notify MOM within 5 working days after affected employees are notified of retrenchment.", "MOM — Mandatory Retrenchment Notifications"], ["TRIPARTITE GUIDANCE", "Responsible retrenchment", "Retrenchment should be conducted responsibly and fairly, using objective criteria linked to business needs.", "MOM — Responsible Retrenchment"]], "7": [["TRIPARTITE GUIDANCE", "Fair promotion practices", "Promotion decisions should be based on merit and job-related criteria. Transparent and consistently applied criteria reduce discrimination and favouritism risk.", "Tripartite fair-employment principles"]], "8": [["LAW", "PDPA protection obligation", "Organisations must make reasonable security arrangements to protect personal data and assess breaches to determine whether notification obligations are triggered.", "PDPC — Data Protection Obligations"], ["LAW", "Data breach notification", "If a breach is determined to be notifiable, the PDPC must be notified as soon as practicable and no later than 3 calendar days; affected individuals must also be notified where required.", "PDPC — Data Breach Notification"]], "9": [["HR GOVERNANCE", "Manager development", "Leadership training is generally an organisational HR decision rather than a statutory requirement. HR can use workforce evidence to determine participation and delivery.", "Internal HR policy"]], "10": [["LAW / HR", "Working hours and wellbeing", "Employment Act rules on working hours, rest days and overtime apply to covered employees; coverage depends on role and salary. HR should establish coverage and separately assess workload and workplace-health risks.", "MOM — Hours of Work, Overtime and Rest Days"]], "11": [["LAW", "Misconduct inquiry", "Before disciplinary action for alleged misconduct, the employer must conduct a formal inquiry. The employee should be informed of the allegation and have an opportunity to present their case.", "MOM — Termination Due to Misconduct"]]};
+const state = {
+  trust:50, performance:50, risk:50, confidence:50, culture:50, budget:100000,
+  current:0, completed:{}, asked:{}, tags:{}, log:[], triggeredEvents:{}, followups:[], stakeholderInterjectionsShown:{}, activeStakeholder:null, pendingFollowup:null, stakeholdersConsulted:{},
+  completedCount:0
+};
+
+
+function startSimulation(){
+ const cover=document.getElementById('coverScreen');
+ if(cover) cover.style.display='none';
+ updateMetrics(); renderInbox(); renderCase();
+}
+function resetSimulation(){
+ if(!confirm('Reset the simulation? All decisions, score changes, follow-ups and progress will be cleared.')) return;
+ state.trust=50; state.performance=50; state.risk=50; state.confidence=50; state.culture=50; state.budget=100000;
+ state.current=0; state.completed={}; state.asked={}; state.tags={}; state.log=[]; state.triggeredEvents={}; state.followups=[]; state.stakeholderInterjectionsShown={}; state.activeStakeholder=null; state.pendingFollowup=null; state.stakeholdersConsulted={}; state.completedCount=0;
+ document.getElementById('modal').classList.remove('show');
+ const fs=document.getElementById('finalSummaryScreen'); if(fs) fs.style.display='none';
+ const im=document.getElementById('interjectionModal'); if(im) im.classList.remove('show');
+ document.getElementById('workspace').classList.remove('hide');
+ document.getElementById('dashboard').classList.remove('active');
+ document.getElementById('navInbox').classList.add('active');
+ document.getElementById('navDash').classList.remove('active');
+ updateMetrics(); renderInbox(); renderCase();
+ const c=cases[0]; document.getElementById('dayLabel').textContent=`Simulation Day ${c.day} · ${c.time}`;
+ showToast('Simulation reset. All scores returned to their starting values.'); const cover=document.getElementById('coverScreen'); if(cover) cover.style.display='flex';
+}
+
+function clamp(n){return Math.max(0,Math.min(100,n))}
+function updateMetrics(){
+ ['trust','performance','risk','confidence','culture'].forEach(k=>{
+   state[k]=clamp(state[k]); document.getElementById(k).textContent=Math.round(state[k]);
+   document.getElementById(k+'Bar').style.width=state[k]+'%';
+ });
+ document.getElementById('budget').textContent='$'+Math.max(0,Math.round(state.budget/1000))+'k';
+ document.getElementById('caseCount').textContent=state.completedCount+' of '+cases.length+' cases completed';
+}
+function renderInbox(){
+ const el=document.getElementById('emailList');
+ el.innerHTML=cases.map((c,i)=>{
+   const done=!!state.completed[i];
+   const current=i===state.current;
+   const locked=!done && !current;
+   return `<div class="email ${current?'active':''} ${done?'done':''} ${locked?'lockedcase':''}" ${locked?'':'onclick="openCase('+i+')"'} style="${locked?'opacity:.45;cursor:not-allowed;':''}">
+   <div class="etop"><span>Day ${c.day} · ${c.sender}</span><span>${c.time}</span></div>
+   <h4>${c.subject}</h4><p>${locked?'Locked — complete the current case to continue.':c.preview}</p>
+   <span class="pill">${done?'Completed':current?'Current Case':'Locked'}</span></div>`;
+ }).join('');
+}
+function openCase(i){
+ if(i>state.current && !state.completed[i]) return;
+ state.current=i; renderInbox(); renderCase();
+ const c=cases[i]; document.getElementById('dayLabel').textContent=`Simulation Day ${c.day} · ${c.time}`;
+ triggerDayEvent(c.day);
+}
+
+function lawPanel(caseId){
+ const items=sgLaw[caseId]||[];
+ return `<details class="lawbox"><summary>⚖ Singapore Employment Law & HR Guidance · ${items.length} reference${items.length===1?'':'s'}</summary>
+ <div style="margin-top:10px">${items.map(x=>`<div class="lawitem"><span class="lawtag">${x[0]}</span><b>${x[1]}</b><p>${x[2]}</p><div class="lawsource">Reference: ${x[3]}</div></div>`).join('')}
+ <div class="lawsource" style="margin-top:8px">Educational summary for this simulation; not legal advice.</div></div></details>`;
+}
+
+
+function consultationKey(caseId,pidx){ return `${caseId}-${pidx}`; }
+function allStakeholdersConsulted(c){
+ return c.stakeholders.every((p,idx)=>!!state.stakeholdersConsulted[consultationKey(c.id,idx)]);
+}
+function consultationCount(c){
+ return c.stakeholders.filter((p,idx)=>!!state.stakeholdersConsulted[consultationKey(c.id,idx)]).length;
+}
+function refreshDecisionAccess(){
+ const c=cases[state.current], unlocked=allStakeholdersConsulted(c);
+ const panel=document.getElementById('decisionPanel');
+ const note=document.getElementById('decisionLockNote');
+ if(panel){
+   panel.classList.toggle('locked-decision',!unlocked);
+   panel.setAttribute('aria-disabled',unlocked?'false':'true');
+ }
+ if(note){
+   note.style.display=unlocked?'none':'block';
+   note.textContent=`Decision locked — complete the initial and follow-up information gathering for all stakeholders before deciding (${consultationCount(c)} of ${c.stakeholders.length} consulted).`;
+ }
+ document.querySelectorAll('.person[data-pidx]').forEach(el=>{
+   const pidx=Number(el.dataset.pidx);
+   el.classList.toggle('consulted',!!state.stakeholdersConsulted[consultationKey(c.id,pidx)]);
+ });
+}
+
+function renderCase(){
+ state.activeStakeholder=null;
+ const c=cases[state.current];
+ document.getElementById('caseTitle').textContent=c.subject;
+ document.getElementById('caseMeta').textContent=`From ${c.sender} · Day ${c.day}, ${c.time}`;
+ document.getElementById('caseCat').textContent=c.category;
+ let done=state.completed[c.id];
+ let follow=state.followups.filter(f=>f.caseId===c.id).map(f=>`<div class="banner"><b>Follow-up:</b> ${f.message}</div>`).join('');
+ document.getElementById('detailBody').innerHTML=`
+ ${follow}
+ <div class="mailcopy">${c.body}</div>
+ <div class="gather-panel">
+   <div class="gather-head">
+     <div class="info-stage-title">Information Gathering</div>
+     <div class="stage-note">Select a stakeholder and conduct the interview in this single workspace. Ask all five initial questions. A New Update will then appear within the same information-gathering panel, followed by four questions relating to that development.</div>
+   </div>
+   <div class="people gather-people">${c.stakeholders.map((p,idx)=>`<div class="person ${state.stakeholdersConsulted[consultationKey(c.id,idx)]?'consulted':''}" data-pidx="${idx}" onclick="openStakeholder(${idx})"><b>${p.name}</b><span>${p.role}</span></div>`).join('')}</div>
+   <div id="stakeholderWorkspace" class="gather-workspace"><div class="stage-note">Select a stakeholder to begin.</div></div>
+ </div>
+ ${lawPanel(c.id)}
+ <div id="decisionPanel" class="decision-panel ${(!allStakeholdersConsulted(c))?'locked-decision':''}">
+ <div class="eyebrow">Your decision</div>
+ <div class="sub" style="margin-bottom:8px">Choose one option to complete this scenario and unlock the next.</div>
+ <div id="decisionLockNote" class="decision-lock-note" style="${allStakeholdersConsulted(c)?'display:none':''}">Decision locked — complete the initial and follow-up information gathering for all stakeholders before deciding (${consultationCount(c)} of ${c.stakeholders.length} consulted).</div>
+ <div class="${done?'locked':''}">${c.choices.map((ch,idx)=>`<div class="choice" onclick="decide(${idx})"><b>${ch.title}</b><span>${ch.desc}</span></div>`).join('')}</div>
+ </div>
+ ${done?'<div class="banner" style="margin-top:12px;background:#eefaf5;border-color:#b9ead6;color:#126344">Decision already recorded for this case.</div>':''}`;
+}
+
+function stakeholderKey(caseId,pidx){ return `${caseId}-${pidx}`; }
+
+function openStakeholder(pidx){
+ const c=cases[state.current], p=c.stakeholders[pidx], qs=Object.keys(p.info);
+ const key=stakeholderKey(c.id,pidx);
+
+ state.activeStakeholder=pidx;
+ state.pendingFollowup=null;
+ const modal=document.getElementById('interjectionModal');
+ if(modal) modal.classList.remove('show');
+
+ // Start each selected stakeholder interview afresh.
+ if(state.asked[c.id]){
+   Object.keys(state.asked[c.id]).forEach(k=>{
+     if(k.startsWith(`${key}-`)) delete state.asked[c.id][k];
+   });
+ }
+ delete state.stakeholderInterjectionsShown[key];
+
+ const split=Math.min(3,qs.length);
+ const initial=qs.slice(0,split);
+ const workspace=document.getElementById('stakeholderWorkspace');
+ if(!workspace)return;
+
+ workspace.innerHTML=`
+   <div class="interview-head">
+     <b>${p.name}</b><span>${p.role}</span>
+   </div>
+   <div class="chat">
+     <div class="chatlog" id="stakeholderChatLog"><div class="msg them"><b>${p.name}:</b><br>${openingLine(p.tone)}</div></div>
+     <div id="stakeholderQuestionArea">${renderInitialQuestions(c,pidx,initial)}</div>
+   </div>`;
+}
+
+const supplementalInitialReplies={"0": {"0": ["HR should clarify whether Marcus has actually adapted to the reorganisation the way I expect a sales manager to. Targets move, accounts move and conditions change; I need managers who can still deliver.", "I want HR to support a clear performance expectation. If Marcus cannot recover quickly, I want a formal process that gives me confidence we are addressing the problem rather than explaining it away."], "1": ["HR should clarify how much of the shortfall came from decisions outside my control. I cannot be judged fairly on a target built around accounts that were taken away.", "I want my performance assessed against the business I actually had. If there is still a gap after that, I will own it and work on it."], "2": ["The key issue is whether the organisation has enough evidence and process to support whichever route we choose. Right now there is too much ambiguity.", "I want a defensible process. That means clear facts, documented expectations and a proportionate next step, whether that is coaching or formal performance management."]}, "1": {"0": ["HR should clarify whether Siti's style is creating operational disruption. Safety matters, but supervisors also need to keep the warehouse moving and maintain workable relationships.", "I want a supervisor who follows standards without making the operation harder than it needs to be. If Siti cannot find that balance, I do not think she is right for the role."], "1": ["HR should clarify whether I am being criticised for enforcing requirements that are actually part of my job. I am willing to improve my communication, but not to ignore safety.", "I want fair probation expectations and a chance to demonstrate that I can lead properly without being penalised for doing the job responsibly."], "2": ["HR needs to separate the safety issue from the way Siti manages people. Even if the checks are valid, I still need her to work effectively with the team.", "I want the team functioning smoothly. If coaching can get us there, good. If not, I need clarity quickly because the warehouse cannot stay unsettled."]}, "2": {"0": ["HR should clarify whether Kenji's value to the business justifies an exception. I am not interested in losing a critical analyst over a rigid pay rule if the commercial impact is greater.", "I want Kenji retained, but I do not want to create a precedent that makes every resignation an automatic pay escalation."], "1": ["HR should clarify whether the company actually sees me as someone with a future here. The external offer is not only about money.", "I want a role with broader scope and fair recognition. If the company cannot offer that, I would rather leave than accept a temporary fix."], "2": ["HR should clarify whether the proposed counteroffer is compatible with our pay structure. A large exception can create internal-equity problems immediately.", "I want any decision to fit the compensation framework unless there is a genuine role change that justifies moving Kenji differently."]}, "3": {"0": ["HR should clarify whether Emily's request can work without weakening team access, client responsiveness or collaboration. I am accountable for delivery, not just individual output.", "I want to keep a strong performer, but I also need a model I can explain to the rest of the team without creating operational problems."], "1": ["HR should clarify whether there is any real performance reason for refusing my request. I have already shown that I can deliver while working flexibly.", "I want a temporary arrangement that lets me manage my caregiving responsibilities without damaging my career."], "2": ["HR should clarify how this request should be handled consistently with our flexible-work obligations and past practice.", "I want a reasoned decision that can be documented and applied consistently, not an ad hoc answer based on manager preference."]}, "4": {"0": ["HR should clarify whether there is enough substance here to justify a formal process against a commercially important executive. I do not want us escalating a sensitive issue unnecessarily.", "I want the matter handled quietly and proportionately so the business is protected without ignoring a credible concern."], "1": ["HR should clarify whether what happened to me is part of a broader pattern. I do not want this dismissed as a personality clash.", "I want the conduct to stop and I want confidence that seniority does not place someone above acceptable behaviour."], "2": ["HR should clarify the actual allegations and evidence. I do not accept being judged on broad descriptions of my style.", "I want a fair process that distinguishes tough leadership from misconduct and does not damage my reputation without evidence."]}, "5": {"0": ["HR should clarify whether the AI tool is materially improving speed and quality. I do not want us abandoning a useful technology because of hypothetical concerns.", "I want a scalable recruitment process. If issues exist, I want them fixed while preserving the efficiency gains."], "1": ["HR should clarify whether our use of candidate data complies with data-protection obligations and whether the vendor gives us enough control.", "I want implementation paused if we cannot meet our governance obligations. Efficiency does not override accountability."], "2": ["HR should clarify whether the tool is excluding good candidates that recruiters would otherwise progress.", "I want technology to support recruiter judgement, not replace it with a ranking that we cannot challenge."]}, "6": {"0": ["HR should clarify the fastest credible route to the required cost reduction. I care about the savings target more than a particular headcount percentage.", "I want the cost base reduced on time without creating a second problem by removing capability we still need."], "1": ["HR should clarify whether manager nominations are based on defensible criteria. Vague labels are not enough for a fair restructure.", "I want a process that can withstand challenge and does not allow managers to use the restructure to remove people they simply do not like."], "2": ["HR should clarify whether the proposed reductions damage critical capability in my business unit.", "I want to meet the cost target, but I will resist cuts that leave my unit unable to deliver next year's priorities."]}, "7": {"0": ["HR should clarify what Daniel was judged on and whether I had the same opportunity to demonstrate readiness.", "I want transparency. If I was not the strongest candidate, tell me why. If the process was inconsistent, I want that fixed."], "1": ["HR should clarify whether my judgement can be supported by evidence. I still believe Daniel was the better choice, but I recognise the documentation is weak.", "I want to preserve managerial judgement while making the process more credible and easier to explain."], "2": ["HR should clarify whether this promotion process is consistent with how other parts of the company make similar decisions.", "I want a minimum standard across the organisation so these disputes do not keep arising."]}, "8": {"0": ["HR should clarify the extent of the disclosure, who received it and whether it meets our breach-notification thresholds.", "I want containment and a defensible compliance response based on the facts."], "1": ["HR should clarify how far my confidential information has spread and what the company will do about the impact on me.", "I want the company to protect my privacy and prevent colleagues from continuing to discuss information they should never have received."], "2": ["HR should clarify whether this was simply my mistake or whether our controls make sensitive emails too easy to mis-send.", "I want to take responsibility for my error, but I also want the company to fix the system weaknesses that contributed to it."]}, "9": {"0": ["HR should clarify what manager behaviours we are actually trying to change. I do not care whether people attend a course if nothing improves afterward.", "I want measurable improvement in leadership quality, not an attendance exercise."], "1": ["HR should clarify how the programme can be delivered without disrupting the business. Two full days is difficult for my managers.", "I want development that is practical and schedulable. If the format is flexible, I will support it."], "2": ["HR should clarify which managers and teams are driving the poor outcomes. The data does not suggest everyone has the same problem.", "I want targeted development where the evidence shows it will have the strongest impact."]}, "10": {"0": ["HR should clarify what work can be stopped or delayed. I cannot keep asking the team to absorb everything indefinitely.", "I want enough capacity and clearer priorities so we can protect the launch without burning people out."], "1": ["HR should clarify whether leadership understands how close some people are to leaving. The team is exhausted.", "I want actual workload relief, not another message telling us to look after our wellbeing while the work stays the same."], "2": ["HR should clarify whether temporary support is financially better than the cost of turnover and lost productivity.", "I want the business to make the financially sensible choice, not simply avoid spending this month and pay more later."]}, "11": {"0": ["HR should clarify the seriousness of the misconduct without losing sight of the commercial impact. Adrian is valuable, but that cannot be the only consideration.", "I want the client opportunity protected and the issue handled in a way I can defend to the leadership team."], "1": ["HR should clarify whether this is being treated as deliberate dishonesty or poor judgement. I dispute the idea that I set out to defraud the company.", "I want the evidence considered proportionately and in context. My performance should not erase the issue, but neither should it be ignored."], "2": ["HR should clarify the full pattern of claims and whether the alterations were deliberate. The consistency of the increases is significant.", "I want the investigation to follow the evidence and apply the same standard regardless of how commercially successful the employee is."]}};
+function extraInitialQuestions(c,pidx){
+ const p=c.stakeholders[pidx];
+ return [
+   `From your perspective, what is the most important issue HR should clarify before making a decision?`,
+   `What outcome are you hoping HR will achieve in this situation?`
+ ];
+}
+const supplementalFollowupReplies={"0": {"0": ["That changes the picture for me. I was looking at Marcus's 18 percent shortfall as evidence that he was simply not delivering, but losing two mature accounts is something I cannot tolerate.", "HR should verify why those accounts were lost, whether Marcus challenged the reassignment, and what he did to replace the business. I still expect a sales manager to recover when conditions change."], "1": ["This supports my position that the target comparison is distorted. I lost established revenue and was still expected to deliver as though nothing had changed.", "HR should quantify the value of the reassigned accounts and recalculate what a fair target would have been. I do not want this reduced to a discussion about attitude."], "2": ["The lack of documented coaching confirms that moving straight to formal action would expose the company procedurally.", "I would verify whether any informal feedback can be evidenced and whether Marcus was clearly told what improvement was required before escalation."]}, "1": {"0": ["If the safety procedure is formally required, then I cannot object to Siti enforcing it. My concern remains whether she can do so without creating unnecessary friction and slowing the operation.", "HR should verify whether the issue is the procedure itself or how Siti applies it. I still need a supervisor who can enforce standards and keep the team functioning."], "1": ["This confirms that I was carrying out a legitimate part of my role. I am willing to improve how I communicate, but I will not compromise on safety checks.", "HR should verify whether others were bypassing the procedure and whether I was expected to tolerate that to be seen as a better fit."], "2": ["The onboarding gap makes the situation less clear, but it does not remove my concern about how Siti manages people day to day.", "HR should identify what she missed and whether completing that training is likely to address the actual behaviour we are seeing."]}, "2": {"0": ["The system dependency makes retention more urgent. It strengthens my view that we should act commercially rather than lose someone critical because the framework is inflexible.", "HR should verify how quickly we can reduce the dependency, but I am still prepared to make a targeted exception if the business case is strong enough."], "1": ["The earlier review comments reinforce that my concerns about progression are longstanding. This is not just about matching an offer.", "HR should verify whether there is a real role-development path. I would not stay for a temporary salary fix if the underlying issue remains."], "2": ["The fact that the increase would sit outside the normal range reinforces my concern. A retention decision should not damage pay consistency.", "HR should verify whether a genuine role re-level is justified; otherwise I would resist using compensation alone to solve the problem."]}, "3": {"0": ["If the critical face-to-face work is limited, I am more open to flexibility, but I still need confidence that team access and client responsiveness will not suffer.", "HR should verify exactly which activities require presence and set clear expectations around availability. I do not want an arrangement that becomes impossible to manage."], "1": ["My results during the informal arrangement support my view that I can perform effectively with flexibility.", "HR should verify my delivery and agree the specific situations where I must attend in person rather than defaulting to a broad office requirement."], "2": ["Comparable temporary exceptions make consistency more important. We should not reject this request on a principle we have already varied elsewhere.", "HR should compare the conditions attached to those exceptions and ensure any difference in treatment can be explained objectively."]}, "4": {"0": ["A corroborating witness means I cannot treat this as a minor interpersonal issue. I still want the matter handled discreetly because the commercial stakes are high.", "HR should verify the witness account independently and keep the process tightly controlled. I want facts, not a broad investigation that creates unnecessary organisational noise."], "1": ["The witness makes me more confident that what happened was not simply my interpretation.", "HR should verify the specific incidents with that person and establish whether there are other examples. I want the behaviour addressed, not minimised."], "2": ["Previous feedback does not prove misconduct, but it tells me that people have raised concerns about my style before. I still expect this complaint to be tested on its own evidence.", "HR should distinguish general feedback from the specific allegations. I do not want old comments used as a substitute for proving what actually happened."]}, "5": {"0": ["The lack of a fairness audit is a gap, but it does not change my view that the tool has real potential. I want the risk tested, not the project abandoned.", "HR should run a targeted fairness review and compare results with recruiter decisions. If the tool performs well, I still want to move toward implementation."], "1": ["The unresolved data-governance questions reinforce my position that the project cannot scale yet.", "HR should obtain the vendor's data-flow, retention and access details before any broader rollout. Governance needs to be resolved first."], "2": ["The low ranking of strong nontraditional candidates reinforces my concern that the tool may be too narrow in what it rewards.", "HR should examine those candidate profiles and test whether recruiters consistently disagree with the model before we rely on it."]}, "6": {"0": ["Knowing the eight percent figure is not fixed gives us more options. My priority remains achieving the savings target, so I am open to alternatives if they are credible and fast enough.", "HR and Finance should verify which savings are recurring and when they hit the P&L. I do not want a softer plan that misses the target."], "1": ["The vague nomination language confirms my concern that some managers are using the restructure too casually.", "HR should require managers to evidence their criteria and remove unsupported labels. I will not support a process built on subjective preferences."], "2": ["The critical-skills issue strengthens my resistance to blunt headcount cuts in my unit.", "HR should map the nominated roles against future business needs. I am prepared to challenge cuts that meet the number but damage capability."]}, "7": {"0": ["The lack of a comparative record reinforces my concern that I was never given a transparent basis for the decision.", "HR should reconstruct the criteria and compare candidates. I want to know whether the result was genuinely merit-based."], "1": ["I still believe Daniel was the right choice. The update tells me the problem is that I cannot demonstrate that clearly enough.", "HR should help establish a better comparison process, but I do not want the current decision overturned simply because the paperwork was weak."], "2": ["The inconsistency across functions confirms this is a wider governance issue.", "HR should set minimum promotion standards across the organisation. I want future decisions to be easier to defend and explain."]}, "8": {"0": ["The forwarding increases the seriousness of the breach. My priority is now containment and determining whether notification thresholds are met.", "We should trace the onward disclosure, document the exposure and complete the formal breach assessment without delay."], "1": ["The fact that colleagues approached me confirms that the breach has already affected me personally.", "HR should establish who knows what and take steps to stop further discussion. I also want clear communication about what support I can expect."], "2": ["The email trail confirms my mistake, but it also reinforces my view that the system made a sensitive error too easy to make.", "HR and IT should review the distribution-list controls and handling of disciplinary information. I accept responsibility, but the process also needs fixing."]}, "9": {"0": ["The turnover link strengthens my view that manager development is necessary, but I still care about behaviour change rather than attendance.", "HR should identify the behaviours linked to poor outcomes and define how we will measure improvement after the intervention."], "1": ["The low-volume scheduling option addresses my main operational concern. I can support the programme if it is delivered in a way the business can absorb.", "HR should confirm the shorter format and timing. I do not want managers pulled out of critical operations for a rigid programme design."], "2": ["The concentration of poor scores supports my view that the intervention should be targeted.", "HR should validate which teams are driving the pattern and use that data to prioritise development where it is most needed."]}, "10": {"0": ["The ability to pause some reporting gives me an immediate way to reduce pressure. I still think the team needs more capacity, but we should stop lower-value work first.", "HR should verify which tasks can be paused and whether that creates enough relief. If it does not, I still want contractor support."], "1": ["The anonymous feedback confirms that people are closer to leaving than management realises.", "HR should verify the extent of the problem quickly, but the most important response is for leadership to reduce workload, not just collect more data."], "2": ["The funding option strengthens my view that temporary support is financially defensible.", "HR should compare the contractor cost with turnover and productivity loss. If the numbers support it, I would recommend funding the support."]}, "11": {"0": ["A backup for the client pitch means there is less reason to delay the misconduct process. I still care about the commercial outcome, but we now have a way to protect it.", "HR should make sure the backup is credible and then proceed with the investigation without allowing Adrian's revenue contribution to dictate timing."], "1": ["The pattern makes the situation harder for me to explain as simple estimating. I still dispute an assumption of dishonest intent, but I understand why the concern has escalated.", "HR should review the full claims and allow me to respond to each item in context. I want the decision to reflect the actual evidence, not just the pattern."], "2": ["The acknowledgement reinforces the concern that the alterations were deliberate. The amount is small, but the integrity issue remains significant.", "HR should complete the evidence review and apply the same misconduct standard that would apply to any other employee."]}};
+function extraFollowupQuestions(c,pidx,item){
+ const p=c.stakeholders[pidx];
+ return [
+   `How does this new update affect your view of the situation?`,
+   `What else should HR verify or consider in light of this new information?`
+ ];
+}
+function questionAnswer(c,pidx,qidx,stage){
+ const p=c.stakeholders[pidx], base=Object.keys(p.info);
+ if(stage==='initial'){
+   if(qidx<base.length) return p.info[base[qidx]];
+   const q=extraInitialQuestions(c,pidx)[qidx-base.length];
+   return generateStakeholderReply(c,p,q);
+ }
+ const originalFollowStart=Math.min(3,base.length);
+ const originalFollowCount=Math.max(0,base.length-originalFollowStart);
+ if(qidx<originalFollowCount){
+   const key=base[originalFollowStart+qidx];
+   return p.info[key];
+ }
+ const item=(stakeholderInterjections[String(c.id)]||{})[String(pidx)];
+ const q=extraFollowupQuestions(c,pidx,item)[qidx-originalFollowCount];
+ return generateStakeholderReply(c,p,q);
+}
+function renderInitialQuestions(c,pidx,questions){
+ const all=[...questions,...extraInitialQuestions(c,pidx)];
+ return `<div class="chatqs">${all.map((q,qi)=>`<button class="btn" onclick="askStakeholder(${pidx},${qi},this,'initial')">${q}</button>`).join('')}</div>`;
+}
+
+function renderFollowupQuestions(c,pidx,questions,offset,item){
+ const p=c.stakeholders[pidx];
+ const update=item ? `<div class="inline-new-update"><span class="update-label">New Update</span><b>${p.name}</b> — ${item[1]}</div>` : '';
+ const all=[...questions,...extraFollowupQuestions(c,pidx,item)];
+ return `${update}
+ <div class="followup-heading">Follow-up Questions</div>
+ <div class="stage-note">Gather information relating to this new update. The consultation is complete once you have asked at least one follow-up question.</div>
+ <div class="chatqs">${all.map((q,qi)=>`<button class="btn" onclick="askStakeholder(${pidx},${qi},this,'followup')">${q}</button>`).join('')}</div>`;
+}
+
+
+function showInterjection(c,pidx,item,follow,split){
+ const p=c.stakeholders[pidx];
+ state.pendingFollowup={caseId:c.id,pidx:pidx,follow:follow,split:split,item:item};
+ document.getElementById('interjectionTitle').textContent=`Update from ${p.name}`;
+ document.getElementById('interjectionText').innerHTML=`<strong>${item[0]}</strong><br><br>${item[1]}`;
+ document.getElementById('interjectionModal').classList.add('show');
+}
+function closeInterjection(){
+ document.getElementById('interjectionModal').classList.remove('show');
+ const pending=state.pendingFollowup;
+ if(!pending)return;
+ const c=cases[state.current];
+ if(c.id===pending.caseId && state.activeStakeholder===pending.pidx){
+   const qarea=document.getElementById('stakeholderQuestionArea');
+   if(qarea) qarea.innerHTML=renderFollowupQuestions(c,pending.pidx,pending.follow,pending.split,pending.item);
+ }
+ state.pendingFollowup=null;
+}
+
+function askStakeholder(pidx,qidx,btn,stage){
+ if(state.activeStakeholder!==pidx) return;
+ const c=cases[state.current], p=c.stakeholders[pidx], base=Object.keys(p.info);
+ let q, ans;
+
+ if(stage==='initial'){
+   const initialBase=base.slice(0,Math.min(3,base.length));
+   const allInitial=[...initialBase,...extraInitialQuestions(c,pidx)];
+   q=allInitial[qidx];
+   if(qidx<initialBase.length) {
+     ans=p.info[initialBase[qidx]];
+   } else {
+     const custom=(supplementalInitialReplies[String(c.id)]||{})[String(pidx)];
+     ans=custom ? custom[qidx-initialBase.length] : generateStakeholderReply(c,p,q);
+   }
+ } else {
+   const followBase=base.slice(Math.min(3,base.length));
+   const item=(stakeholderInterjections[String(c.id)]||{})[String(pidx)];
+   const allFollow=[...followBase,...extraFollowupQuestions(c,pidx,item)];
+   q=allFollow[qidx];
+   if(qidx<followBase.length) {
+     ans=p.info[followBase[qidx]];
+   } else {
+     const custom=(supplementalFollowupReplies[String(c.id)]||{})[String(pidx)];
+     ans=custom ? custom[qidx-followBase.length] : generateStakeholderReply(c,p,q);
+   }
+ }
+
+ const log=document.getElementById('stakeholderChatLog');
+ if(!log || !q)return;
+ log.innerHTML+=`<div class="msg me">${q}</div><div class="msg them"><b>${p.name}:</b><br>${ans}</div>`;
+ log.scrollTop=log.scrollHeight;
+ btn.disabled=true;
+
+ if(!state.asked[c.id])state.asked[c.id]={};
+ const key=stakeholderKey(c.id,pidx);
+ state.asked[c.id][`${key}-${stage}-${qidx}`]=true;
+
+ if(stage==='followup'){
+   state.stakeholdersConsulted[consultationKey(c.id,pidx)]=true;
+   refreshDecisionAccess();
+ }
+
+ if(stage==='initial'){
+   const count=Object.keys(state.asked[c.id]).filter(k=>k.startsWith(`${key}-initial-`)).length;
+   if(count>=5 && !state.stakeholderInterjectionsShown[key]){
+     state.stakeholderInterjectionsShown[key]=true;
+     const follow=base.slice(Math.min(3,base.length));
+     const item=(stakeholderInterjections[String(c.id)]||{})[String(pidx)];
+     if(item){
+       const qarea=document.getElementById('stakeholderQuestionArea');
+       if(qarea && state.activeStakeholder===pidx){
+         qarea.innerHTML=renderFollowupQuestions(c,pidx,follow,Math.min(3,base.length),item);
+       }
+     }
+   }
+ }
+}
+
+function openingLine(tone){
+ const lines={impatient:"I have limited time, but go ahead.",defensive:"I want to make sure the full context is understood.",analytical:"Let's work through the facts.",commercial:"I need something workable for the business.",concerned:"I appreciate you speaking with me.",uneasy:"I'll answer what I can.",urgent:"We need a decision quickly.",calm:"Sure. I'm happy to explain.",technical:"I can give you the policy and pay context.",cautious:"I want to be fair, but I also need consistency.",vulnerable:"Thank you for asking directly.",balanced:"Let's separate the facts, risks and options.",controlled:"I expect discretion and sound judgement.",guarded:"I need this handled carefully.",confident:"I'm comfortable explaining my position.",enthusiastic:"I think this could really improve recruitment.",practical:"I can tell you what happened in the pilot.",direct:"We need a defensible answer quickly.",serious:"This needs proper governance.",political:"Managers know their people best.",frustrated:"I want to understand how the decision was really made.",apologetic:"I made a mistake and I want to put it right.",committed:"We need managers to improve.",resistant:"I am not convinced the current format is practical.","evidence-based":"The data can help us target the problem.",pressured:"The team is under enormous pressure right now.",tired:"People are close to burnout.","cost-focused":"There is a cost issue, but we should look at total business impact.",conflicted:"This is commercially difficult.",assertive:"I disagree with how this is being characterised.",firm:"The evidence is fairly clear."};
+ return lines[tone]||"What would you like to know?";
+}
+
+
+
+
+function normaliseWords(s){
+ return s.toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>2);
+}
+function containsAny(text, words){ return words.some(w=>text.includes(w)); }
+
+function stakeholderPerspective(p){
+ const role=(p.role||'').toLowerCase(), tone=(p.tone||'').toLowerCase();
+ if(role.includes('director')||role.includes('chief')||role.includes('manager'))
+   return "From my position, I am also thinking about delivery, team impact and what happens next.";
+ if(role.includes('hr')||role.includes('compensation')||role.includes('data protection'))
+   return "From a governance perspective, I would want the facts, process and documentation to be clear before HR acts.";
+ if(role.includes('employee')||role.includes('executive')||role.includes('analyst')||role.includes('specialist'))
+   return "What matters to me is that the situation is understood fairly rather than judged from one person's version of events.";
+ return "That is how I see it from my part of the situation.";
+}
+
+function generateStakeholderReply(c,p,q){
+ const ql=q.toLowerCase().trim(), entries=Object.entries(p.info||{});
+ const stop=new Set(['what','when','where','which','whose','would','could','should','about','there','their','have','been','were','your','this','that','with','from','does','did','why','how','tell','give','more','anything','know']);
+ const qwords=normaliseWords(q).filter(w=>!stop.has(w));
+
+ // Score both the stakeholder's known questions and their answers.
+ let scored=entries.map(([k,v])=>{
+   const hay=(k+' '+v).toLowerCase();
+   let score=0;
+   qwords.forEach(w=>{ if(hay.includes(w)) score+=2; });
+   const concepts=[
+     [['document','evidence','record','proof'],['document','evidence','record','formal']],
+     [['support','coach','help','training','onboard'],['support','coach','training','onboard']],
+     [['target','performance','result','sales','productivity'],['target','performance','result','productivity']],
+     [['fair','bias','favour','favor','consistent'],['fair','bias','equity','consistent','transparent']],
+     [['policy','process','procedure','rule'],['policy','process','procedure','criteria']],
+     [['risk','legal','complaint','grievance'],['risk','complaint','grievance','legal']],
+     [['money','salary','pay','budget','cost'],['salary','pay','budget','cost','compensation']],
+     [['leave','resign','stay','retention'],['leave','resign','stay','retention']],
+     [['team','colleague','staff','employee'],['team','employee','colleague','people']],
+     [['manager','boss','leader','supervisor'],['manager','leader','supervisor']],
+     [['safety','incident','unsafe'],['safety','incident']],
+     [['remote','flexible','home','caregiving'],['remote','flexible','caregiving']],
+     [['ai','algorithm','screen','candidate'],['ai','algorithm','screen','candidate']],
+     [['privacy','confidential','email','data'],['privacy','confidential','email','data']],
+     [['promotion','career','development'],['promotion','career','development']],
+     [['overtime','burnout','workload','hours'],['overtime','burnout','workload','hours']],
+     [['conduct','misconduct','expense','receipt'],['conduct','misconduct','expense','receipt']]
+   ];
+   concepts.forEach(([asked,known])=>{
+      if(containsAny(ql,asked) && known.some(w=>hay.includes(w))) score+=4;
+   });
+   return {k,v,score};
+ }).sort((a,b)=>b.score-a.score);
+
+ let primary=scored[0], secondary=scored[1];
+ let introOptions=[
+   "Based on what I have seen, ",
+   "From my side of this, ",
+   "The part I can speak to is that ",
+   "My understanding is that ",
+   "What I would add is that "
+ ];
+ let intro=introOptions[(q.length+p.name.length+state.completedCount)%introOptions.length];
+
+ // Direct conversational intents.
+ if(/^(do|did|are|is|was|were|can|could|would|will|have|has)\b/.test(ql) && primary && primary.score>0){
+    return intro + primary.v.charAt(0).toLowerCase()+primary.v.slice(1) + " " + stakeholderPerspective(p);
+ }
+ if(containsAny(ql,['feel','feeling','concern','worried','worry','think about'])){
+    let base=primary && primary.score>0 ? primary.v : entries[0]?.[1];
+    return "My main concern is how this affects the situation in practice. " + (base||"I want HR to understand the context before reaching a conclusion.") + " " + stakeholderPerspective(p);
+ }
+ if(containsAny(ql,['else','more','additional','anything'])){
+    let facts=scored.filter(x=>x.score>=0).slice(0,2).map(x=>x.v);
+    return "One additional point is this: " + (facts[1]||facts[0]||"there may be context HR has not yet heard") + " I would take that into account before deciding.";
+ }
+ if(containsAny(ql,['recommend','suggest','what should','what would you do'])){
+    let base=primary && primary.score>0 ? primary.v : entries[0]?.[1];
+    return "I would not make the decision from my perspective alone. " + (base||"I would first establish the facts.") + " Then HR should weigh that against the business and people implications.";
+ }
+
+ // Strong semantic match: synthesize rather than merely repeat a stored answer.
+ if(primary && primary.score>=2){
+    let response=intro + primary.v.charAt(0).toLowerCase()+primary.v.slice(1);
+    if(secondary && secondary.score>=2 && secondary.v!==primary.v){
+       response += " Also, " + secondary.v.charAt(0).toLowerCase()+secondary.v.slice(1);
+    }
+    return response + " " + stakeholderPerspective(p);
+ }
+
+ // Role-specific fallback — intentionally different for each informant.
+ const role=(p.role||'').toLowerCase();
+ if(role.includes('hr')||role.includes('compensation')||role.includes('data protection')||role.includes('audit')){
+   return "I do not have a specific fact on that point, so I would avoid assuming. What I can say is that HR should verify the evidence, apply the relevant process consistently and document the rationale before deciding.";
+ }
+ if(role.includes('director')||role.includes('chief')||role.includes('manager')){
+   return "I cannot give you a definitive answer on that specific point. From the business side, my concern is the effect on delivery, the team and how quickly the issue can be resolved without creating a bigger problem.";
+ }
+ return "I do not know enough to answer that specific point with certainty. From my own experience of the situation, I want HR to understand the context and how the decision will affect me and the team before reaching a conclusion.";
+}
+
+function freeAsk(pidx){
+ const input=document.getElementById('freeQ'); if(!input.value.trim())return;
+ const q=input.value.trim(), c=cases[state.current], p=c.stakeholders[pidx];
+ const reply=generateStakeholderReply(c,p,q);
+ const log=document.getElementById('chatLog');
+ log.innerHTML+=`<div class="msg me">${q}</div><div class="msg them"><b>${p.name}:</b><br>${reply}</div>`;
+ log.scrollTop=log.scrollHeight; input.value='';
+}
+
+function explainImpact(c,ch,k,v){
+ const positive=v>0, mag=Math.abs(v);
+ const title=ch.title.toLowerCase(), out=(ch.outcome||'').toLowerCase(), tags=ch.tags||[];
+ const balanced=tags.includes('balanced')||tags.includes('evidence')||tags.includes('integrity')||tags.includes('governance')||tags.includes('strategic');
+ const management=tags.includes('management_first'), employee=tags.includes('employee_first'), avoidance=tags.includes('avoidance');
+
+ if(k==='trust'){
+   if(positive) return balanced ? "Employees are more likely to see HR as fair, evidence-based and willing to consider their interests before acting." :
+     "The decision is likely to improve employees' perception that the organisation listens and responds to people concerns.";
+   return management ? "Prioritising management's preferred outcome without enough fact-finding can make employees doubt HR's independence and fairness." :
+     avoidance ? "Avoiding the underlying issue can reduce confidence that HR will address employee concerns properly." :
+     "The decision may be perceived as less fair or less supportive, weakening employees' confidence in the organisation.";
+ }
+ if(k==='performance'){
+   if(positive) return management ? "The decision supports immediate operational priorities and gives management a faster route to address the business issue." :
+     balanced ? "The decision protects business continuity while addressing the people issue in a structured way." :
+     "The choice is expected to support productivity, continuity or retention of important capability.";
+   return avoidance ? "The underlying people or capability problem remains unresolved, which can create operational drag." :
+     employee ? "The employee-supportive approach creates a short-term operational or management cost while the issue is worked through." :
+     "The choice creates disruption, capacity loss or additional management time, reducing short-term business performance.";
+ }
+ if(k==='risk'){
+   if(positive) return management ? "The faster management-led approach creates greater exposure because process, evidence or consistency may be insufficient." :
+     avoidance ? "Delaying or sidestepping the issue allows compliance, grievance or legal exposure to accumulate." :
+     "This decision increases HR/compliance exposure because the process or outcome may be difficult to defend.";
+   return balanced ? "Fact-finding, documentation and a proportionate process make the decision more defensible and reduce HR/legal exposure." :
+     "The choice reduces exposure by strengthening process, documentation, consistency or compliance.";
+ }
+ if(k==='confidence'){
+   if(positive) return management ? "The manager feels HR is responsive and willing to support a decisive business solution." :
+     balanced ? "Managers gain confidence because HR provides a practical solution while maintaining a defensible process." :
+     "The decision gives managers clearer support or a workable route forward.";
+   return employee ? "The manager may feel HR is placing employee considerations ahead of the manager's preferred business response." :
+     "The manager may see HR as slowing, challenging or complicating the preferred course of action.";
+ }
+ if(k==='culture'){
+   if(positive) return balanced ? "Consistent, fair and evidence-based treatment reinforces the behaviours and standards the organisation wants employees to experience." :
+     "The decision sends a constructive signal about how people should be treated and how organisational values are applied.";
+   return management ? "Employees may infer that business results or seniority can outweigh fairness and consistent people practices." :
+     avoidance ? "Leaving the issue unresolved can normalise poor behaviour or inconsistent standards." :
+     "The choice may create perceptions of inconsistency or weaken the workplace norms HR is trying to reinforce.";
+ }
+ if(k==='budget'){
+   if(v<0) return "This option requires additional people expenditure, such as compensation, temporary support, programme delivery or transition costs.";
+   return "This option preserves or releases people budget compared with the alternatives.";
+ }
+ return "This score changes because of the expected business and people consequences of the decision.";
+}
+function impactExplanation(c,ch,im){
+ const rows=Object.entries(im).filter(([k,v])=>v!==0).map(([k,v])=>
+   `<div class="whyrow"><b>${label(k)}</b><span class="delta">${fmt(k,v)}</span><br>${explainImpact(c,ch,k,v)}</div>`).join('');
+ return `<div class="scorewhy"><h4>Why did the scores change?</h4>${rows}</div>`;
+}
+
+function decide(idx){
+ const currentCase=cases[state.current];
+ if(!allStakeholdersConsulted(currentCase)){
+   showToast(`Complete the initial and follow-up information gathering for all stakeholders before making a decision (${consultationCount(currentCase)} of ${currentCase.stakeholders.length} consulted).`);
+   return;
+ }
+
+ const c=cases[state.current]; if(state.completed[c.id])return;
+ const ch=c.choices[idx], im=ch.impact;
+ Object.keys(im).forEach(k=>{if(k==='budget')state.budget+=im[k];else state[k]+=im[k]});
+ ch.tags.forEach(t=>state.tags[t]=(state.tags[t]||0)+1);
+ state.completed[c.id]=true;state.completedCount++;
+ state.log.push({case:c.subject,choice:ch.title,outcome:ch.outcome,day:c.day});
+ if(c.followup && ch.tags.includes(c.followup.trigger_tag)) state.followups.push({caseId:c.id,message:c.followup.message,severity:c.followup.severity});
+ updateMetrics();renderInbox();
+ const impacts=Object.entries(im).map(([k,v])=>`<div class="impact">${label(k)}<b>${fmt(k,v)}</b></div>`).join('');
+ document.getElementById('modalbox').innerHTML=`<h2>Business Consequence</h2><p><b>${ch.title}</b></p><p>${ch.outcome}</p><div class="impacts">${impacts}</div>
+ ${impactExplanation(c,ch,im)}
+ <p class="sub">HR decisions create trade-offs. Strong judgement considers evidence, fairness, risk, employee experience and commercial impact together.</p>
+ <button class="btn primary" onclick="continueAfterDecision()">${state.completedCount===cases.length?'View Final Summary':'Continue to Next Scenario'}</button>`;
+ document.getElementById('modal').classList.add('show');
+ updateDashboard();
+}
+function label(k){return {trust:'Employee Trust',performance:'Performance',risk:'HR Risk',confidence:'Manager Confidence',budget:'Budget',culture:'Culture'}[k]}
+function fmt(k,v){if(k==='budget')return (v>=0?'+':'-')+'$'+Math.abs(v/1000)+'k';return (v>0?'+':'')+v}
+
+function showFinalSummary(){
+ updateDashboard();
+ const score=Math.round((state.trust+state.performance+(100-state.risk)+state.confidence+state.culture)/5);
+ const grade=score>=85?'Strategic HR Leader':score>=75?'Strong HR Manager':score>=65?'Capable but Inconsistent':score>=50?'Reactive HR Manager':'High-Risk HR Practice';
+ document.getElementById('finalSummaryHeadline').innerHTML=`Overall score: <strong>${score}/100</strong> · ${grade}`;
+ const vals=[
+   ['Employee Trust',Math.round(state.trust)],
+   ['Business Performance',Math.round(state.performance)],
+   ['HR / Legal Risk',Math.round(state.risk)+' / 100'],
+   ['Manager Confidence',Math.round(state.confidence)],
+   ['People Culture',Math.round(state.culture)],
+   ['Budget Remaining','$'+Math.max(0,Math.round(state.budget)).toLocaleString()]
+ ];
+ document.getElementById('finalSummaryMetrics').innerHTML=vals.map(x=>`<div class="final-metric"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('');
+
+ const bal=state.tags.balanced||0, mg=state.tags.management_first||0, emp=state.tags.employee_first||0, avoid=state.tags.avoidance||0;
+ let profile=bal>=5?'Your decisions show a strong tendency to balance evidence, employee considerations and commercial needs.':
+ mg>=3?'Your decisions frequently prioritised management requests and speed, creating a distinctive management-first profile.':
+ emp>=3?'Your decisions strongly prioritised employee interests, sometimes creating commercial or managerial trade-offs.':
+ 'Your results show a mixed decision-making profile, with different priorities emerging across the cases.';
+ document.getElementById('finalSummaryProfile').innerHTML=`<div class="cover-panel"><h3>Decision Profile</h3><p>${profile}</p><p><strong>Balanced decisions:</strong> ${bal} &nbsp; · &nbsp; <strong>Management-first:</strong> ${mg} &nbsp; · &nbsp; <strong>Employee-first:</strong> ${emp} &nbsp; · &nbsp; <strong>Avoidance:</strong> ${avoid}</p></div>`;
+
+ document.getElementById('finalSummaryLog').innerHTML=state.log.map((x,i)=>`<div class="logitem"><b>Case ${i+1}: ${x.case}</b><br><strong>Your decision:</strong> ${x.choice}<br><span class="sub">${x.outcome}</span></div>`).join('');
+ document.getElementById('finalSummaryScreen').style.display='block';
+ document.getElementById('finalSummaryScreen').scrollTop=0;
+}
+function showDashboardFromSummary(){
+ document.getElementById('finalSummaryScreen').style.display='none';
+ showDashboard();
+}
+function resetSimulationFromSummary(){
+ document.getElementById('finalSummaryScreen').style.display='none';
+ resetSimulation();
+}
+
+function continueAfterDecision(){
+ document.getElementById('modal').classList.remove('show');
+ if(state.completedCount===cases.length){
+   showFinalSummary();
+   showToast('Simulation complete. Review your results and prepare to discuss them.');
+   return;
+ }
+ const currentCase=cases[state.current];
+ if(!state.completed[currentCase.id]){
+   showToast('Please complete the current scenario first.');
+   return;
+ }
+ state.current=Math.min(state.current+1,cases.length-1);
+ renderInbox();
+ renderCase();
+ const c=cases[state.current];
+ document.getElementById('dayLabel').textContent=`Simulation Day ${c.day} · ${c.time}`;
+ triggerDayEvent(c.day);
+}
+function closeModal(){document.getElementById('modal').classList.remove('show'); if(state.completedCount===cases.length){showDashboard();showToast('Simulation complete. Review your results.')}}
+function triggerDayEvent(day){
+ const ev=events.find(e=>e.day===day); if(!ev||state.triggeredEvents[day])return; state.triggeredEvents[day]=true;
+ Object.keys(ev.impact).forEach(k=>{if(k==='budget')state.budget+=ev.impact[k];else state[k]+=ev.impact[k]});updateMetrics();
+ setTimeout(()=>{document.getElementById('modalbox').innerHTML=`<h2>${ev.title}</h2><p>${ev.text}</p><button class="btn primary" onclick="closeModal()">Acknowledge</button>`;document.getElementById('modal').classList.add('show')},250);
+}
+function nextOpenCase(){
+ const currentCase=cases[state.current];
+ if(!state.completed[currentCase.id]){
+   showToast('Complete the current scenario before moving to the next one.');
+   return;
+ }
+ if(state.current>=cases.length-1){
+   showDashboard();
+   return;
+ }
+ state.current++;
+ renderInbox();
+ renderCase();
+ const c=cases[state.current];
+ document.getElementById('dayLabel').textContent=`Simulation Day ${c.day} · ${c.time}`;
+ triggerDayEvent(c.day);
+}
+function showDashboard(){
+ document.getElementById('workspace').classList.add('hide');document.getElementById('dashboard').classList.add('active');
+ document.getElementById('navInbox').classList.remove('active');document.getElementById('navDash').classList.add('active');updateDashboard();
+}
+function showInbox(){
+ document.getElementById('workspace').classList.remove('hide');document.getElementById('dashboard').classList.remove('active');
+ document.getElementById('navInbox').classList.add('active');document.getElementById('navDash').classList.remove('active');
+}
+function updateDashboard(){
+ let score=Math.round((state.trust+state.performance+(100-state.risk)+state.confidence+state.culture)/5);
+ let g=score>=85?'Strategic HR Leader':score>=75?'Strong HR Manager':score>=65?'Capable but Inconsistent':score>=50?'Reactive HR Manager':'High-Risk HR Practice';
+ document.getElementById('finalScore').textContent=score;document.getElementById('grade').textContent=g;
+ let strengths=[], risks=[];
+ if(state.trust>=75)strengths.push('employees generally trust HR processes'); else risks.push('employee trust is fragile');
+ if(state.risk<=25)strengths.push('risk is well controlled'); else if(state.risk>=45)risks.push('HR/legal risk is elevated');
+ if(state.performance>=75)strengths.push('business performance has been protected'); else risks.push('several decisions created business drag');
+ if(state.culture>=75)strengths.push('people culture strengthened'); else if(state.culture<60)risks.push('organisational culture has deteriorated');
+ document.getElementById('summaryText').innerHTML=`<p><b>Overall:</b> ${strengths.length?strengths.join(', '):'mixed outcomes'}. ${risks.length?'Key concerns: '+risks.join(', ')+'.':''}</p>`;
+ const mg=state.tags.management_first||0, bal=state.tags.balanced||0, emp=state.tags.employee_first||0, avoid=state.tags.avoidance||0;
+ let profile=bal>=5?'You tend to gather evidence and balance employee, managerial and commercial considerations before acting.':
+ mg>=3?'You tend to prioritise speed and management requests. This can build short-term leadership confidence but creates fairness and process risk.':
+ emp>=3?'You tend to protect employee interests strongly, sometimes at the expense of commercial or managerial confidence.':
+ 'Your decision style is mixed. The pattern suggests situational judgement, but consistency of process could be stronger.';
+ document.getElementById('profileText').innerHTML=`<p>${profile}</p><p><b>Balanced decisions:</b> ${bal}<br><b>Management-first signals:</b> ${mg}<br><b>Employee-first signals:</b> ${emp}<br><b>Avoidance signals:</b> ${avoid}</p>`;
+ document.getElementById('decisionLog').innerHTML=state.log.length?state.log.map(x=>`<div class="logitem"><b>Day ${x.day} · ${x.case}</b><br>${x.choice}<br><span class="sub">${x.outcome}</span></div>`).join(''):'<p class="sub">No decisions recorded yet.</p>';
+ document.getElementById('riskText').innerHTML=`<p><b>HR / Legal Risk:</b> ${Math.round(state.risk)} / 100</p><p><b>Outstanding follow-ups:</b> ${state.followups.length}</p>${state.followups.map(f=>`<div class="banner">${f.message}</div>`).join('')}`;
+}
+function showToast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1800)}
+renderInbox();openCase(0);updateMetrics();updateDashboard();
+</script>
+</body>
+</html>
